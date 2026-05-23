@@ -1,0 +1,48 @@
+{
+  "name": "@justscale/testing",
+  "version": "0.1.0",
+  "sideEffects": false,
+  "description": "Test utilities, mocks, and test containers for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/core/testing"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "testing",
+    "mocks",
+    "test-container",
+    "typescript"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "ptsc --noEmit",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*"
+  }
+}

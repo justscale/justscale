@@ -1,0 +1,97 @@
+{
+  "name": "@justscale/postgres",
+  "version": "0.1.0",
+  "description": "PostgreSQL adapter with repositories, migrations, and LISTEN/NOTIFY for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/adapters/postgres"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "postgres",
+    "postgresql",
+    "database",
+    "repository",
+    "typescript"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "justscale": {
+    "modes": {
+      "cli": {
+        "source": "./src/cli.ts",
+        "import": "./dist/cli.js"
+      }
+    },
+    "quickFixes": {
+      "source": "./src/ide/quick-fixes.ts",
+      "import": "./dist/ide/quick-fixes.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "source": "./src/testing/index.ts",
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "default": "./dist/testing/index.js"
+    },
+    "./dev": {
+      "source": "./src/dev/index.ts",
+      "types": "./dist/dev/index.d.ts",
+      "import": "./dist/dev/index.js",
+      "default": "./dist/dev/index.js"
+    },
+    "./virtual/migrations": {
+      "source": "./src/virtual/migrations.ts",
+      "types": "./dist/virtual/migrations.d.ts",
+      "import": "./dist/virtual/migrations.js",
+      "default": "./dist/virtual/migrations.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "test": "node --env-file-if-exists=../../../.env --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "dependencies": {
+    "postgres": "^3.4.9"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "peerDependenciesMeta": {
+    "@electric-sql/pglite": {
+      "optional": true
+    },
+    "@electric-sql/pglite-socket": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.5",
+    "@electric-sql/pglite-socket": "^0.1.5",
+    "@justscale/core": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "tsx": "^4.21.0"
+  }
+}

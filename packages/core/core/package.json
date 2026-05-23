@@ -1,0 +1,209 @@
+{
+  "name": "@justscale/core",
+  "version": "0.1.0",
+  "description": "Type-safe dependency injection, services, and controllers for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/core/core"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "di",
+    "dependency-injection",
+    "typescript",
+    "backend",
+    "services"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "just": "./bin/just.js"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./runtime/protobuf": {
+      "source": "./src/runtime/protobuf/index.ts",
+      "types": "./dist/runtime/protobuf/index.d.ts",
+      "import": "./dist/runtime/protobuf/index.js",
+      "default": "./dist/runtime/protobuf/index.js"
+    },
+    "./di": {
+      "source": "./src/core/index.ts",
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "default": "./dist/core/index.js"
+    },
+    "./controller": {
+      "source": "./src/core/index.ts",
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "default": "./dist/core/index.js"
+    },
+    "./middleware": {
+      "source": "./src/core/middleware.ts",
+      "types": "./dist/core/middleware.d.ts",
+      "import": "./dist/core/middleware.js",
+      "default": "./dist/core/middleware.js"
+    },
+    "./plugin": {
+      "source": "./src/core/plugin.ts",
+      "types": "./dist/core/plugin.d.ts",
+      "import": "./dist/core/plugin.js",
+      "default": "./dist/core/plugin.js"
+    },
+    "./logger": {
+      "source": "./src/core/logger.ts",
+      "types": "./dist/core/logger.d.ts",
+      "import": "./dist/core/logger.js",
+      "default": "./dist/core/logger.js"
+    },
+    "./lifecycle": {
+      "source": "./src/core/lifecycle.ts",
+      "types": "./dist/core/lifecycle.d.ts",
+      "import": "./dist/core/lifecycle.js",
+      "default": "./dist/core/lifecycle.js"
+    },
+    "./feature": {
+      "source": "./src/features/index.ts",
+      "types": "./dist/features/index.d.ts",
+      "import": "./dist/features/index.js",
+      "default": "./dist/features/index.js"
+    },
+    "./models": {
+      "source": "./src/models/index.ts",
+      "types": "./dist/models/index.d.ts",
+      "import": "./dist/models/index.js",
+      "default": "./dist/models/index.js"
+    },
+    "./models/in-memory": {
+      "source": "./src/models/in-memory/index.ts",
+      "types": "./dist/models/in-memory/index.d.ts",
+      "import": "./dist/models/in-memory/index.js",
+      "default": "./dist/models/in-memory/index.js"
+    },
+    "./cluster": {
+      "source": "./src/cluster/index.ts",
+      "types": "./dist/cluster/index.d.ts",
+      "import": "./dist/cluster/index.js",
+      "default": "./dist/cluster/index.js"
+    },
+    "./cluster/protocol": {
+      "source": "./src/cluster/protocol.ts",
+      "types": "./dist/cluster/protocol.d.ts",
+      "import": "./dist/cluster/protocol.js",
+      "default": "./dist/cluster/protocol.js"
+    },
+    "./cluster/transport": {
+      "source": "./src/cluster/transport.ts",
+      "types": "./dist/cluster/transport.d.ts",
+      "import": "./dist/cluster/transport.js",
+      "default": "./dist/cluster/transport.js"
+    },
+    "./cluster/scheduled-task": {
+      "source": "./src/cluster/scheduled-task/index.ts",
+      "types": "./dist/cluster/scheduled-task/index.d.ts",
+      "import": "./dist/cluster/scheduled-task/index.js",
+      "default": "./dist/cluster/scheduled-task/index.js"
+    },
+    "./cli": {
+      "source": "./src/cli/index.ts",
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js",
+      "default": "./dist/cli/index.js"
+    },
+    "./config": {
+      "source": "./src/features/config/index.ts",
+      "types": "./dist/features/config/index.d.ts",
+      "import": "./dist/features/config/index.js",
+      "default": "./dist/features/config/index.js"
+    },
+    "./channel": {
+      "source": "./src/features/channel/index.ts",
+      "types": "./dist/features/channel/index.d.ts",
+      "import": "./dist/features/channel/index.js",
+      "default": "./dist/features/channel/index.js"
+    },
+    "./lock": {
+      "source": "./src/features/lock/index.ts",
+      "types": "./dist/features/lock/index.d.ts",
+      "import": "./dist/features/lock/index.js",
+      "default": "./dist/features/lock/index.js"
+    },
+    "./contract": {
+      "source": "./src/features/contract/index.ts",
+      "types": "./dist/features/contract/index.d.ts",
+      "import": "./dist/features/contract/index.js",
+      "default": "./dist/features/contract/index.js"
+    },
+    "./process": {
+      "source": "./src/process/index.ts",
+      "types": "./dist/process/index.d.ts",
+      "import": "./dist/process/index.js",
+      "default": "./dist/process/index.js"
+    },
+    "./process/cluster": {
+      "source": "./src/process/cluster-plugin.ts",
+      "types": "./dist/process/cluster-plugin.d.ts",
+      "import": "./dist/process/cluster-plugin.js",
+      "default": "./dist/process/cluster-plugin.js"
+    },
+    "./process/delay-controller": {
+      "source": "./src/process/delay-controller.ts",
+      "types": "./dist/process/delay-controller.d.ts",
+      "import": "./dist/process/delay-controller.js",
+      "default": "./dist/process/delay-controller.js"
+    },
+    "./memory": {
+      "source": "./src/features/memory/index.ts",
+      "types": "./dist/features/memory/index.d.ts",
+      "import": "./dist/features/memory/index.js",
+      "default": "./dist/features/memory/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'src/**/*.test.ts' 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "cbor-x": "^1.6.4",
+    "weakrefset": "^0.2.2"
+  },
+  "peerDependencies": {
+    "@justscale/typescript": "workspace:*",
+    "esbuild": "^0.27.0",
+    "zod": "^4.3.6"
+  },
+  "peerDependenciesMeta": {
+    "@justscale/typescript": {
+      "optional": true
+    },
+    "esbuild": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@justscale/typescript": "workspace:*",
+    "esbuild": "^0.27.7"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "all": true,
+  "include": [
+    "packages/*/*/src/**/*.ts",
+    "packages/*/*/*/src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/test/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/*.d.ts"
+  ],
+  "reporter": ["text-summary", "html", "lcov"],
+  "report-dir": ".coverage",
+  "temp-directory": ".coverage/tmp"
+}

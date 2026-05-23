@@ -1,0 +1,10 @@
+# Generated directories
+dist/
+/lib/
+
+# IDE
+.idea/
+*.swp
+
+# OS
+.DS_Store

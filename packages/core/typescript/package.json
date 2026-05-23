@@ -1,0 +1,115 @@
+{
+  "name": "@justscale/typescript",
+  "version": "6.0.0",
+  "description": "Drop-in TypeScript replacement with JustScale process compilation - ptsc compiler, tsserver, LSP plugin, programmatic API",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/core/typescript"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "typescript",
+    "compiler",
+    "tsc",
+    "tsserver",
+    "language-service",
+    "ide",
+    "vscode",
+    "durable",
+    "process"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "ptsc": "./dist/compiler/ptsc.js",
+    "ptscserver": "./dist/server/tsserver.js",
+    "justscale-tsc": "./dist/compiler/ptsc.js",
+    "justscale-tsserver": "./dist/server/tsserver.js"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./api": {
+      "source": "./src/api.ts",
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.js",
+      "default": "./dist/api.js"
+    },
+    "./config": {
+      "source": "./src/config/index.ts",
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
+    },
+    "./language-service": {
+      "source": "./src/language-service/index.ts",
+      "types": "./dist/language-service/index.d.ts",
+      "require": "./dist/language-service/index.js",
+      "import": "./dist/language-service/index.js",
+      "default": "./dist/language-service/index.js"
+    },
+    "./server": {
+      "source": "./src/server/index.ts",
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js",
+      "default": "./dist/server/index.js"
+    },
+    "./loader": {
+      "source": "./src/loader/index.ts",
+      "types": "./dist/loader/index.d.ts",
+      "import": "./dist/loader/index.js",
+      "default": "./dist/loader/index.js"
+    },
+    "./register": {
+      "source": "./src/loader/register.ts",
+      "import": "./dist/loader/register.js",
+      "default": "./dist/loader/register.js"
+    },
+    "./editor": {
+      "source": "./src/editor.ts",
+      "types": "./dist/editor.d.ts",
+      "import": "./dist/editor.js",
+      "default": "./dist/editor.js"
+    },
+    "./lib/typescript": {
+      "source": "./src/lib/typescript.ts",
+      "require": "./lib/typescript.js",
+      "default": "./lib/typescript.js"
+    },
+    "./lib/tsserver": {
+      "source": "./src/lib/tsserver.ts",
+      "require": "./lib/tsserver.js",
+      "default": "./lib/tsserver.js"
+    }
+  },
+  "files": [
+    "dist",
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json && tsc -p tsconfig.lib.json && npm run postbuild",
+    "postbuild": "node scripts/create-lib-shims.js",
+    "clean": "rm -rf dist lib",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.0"
+  },
+  "devDependencies": {
+    "source-map": "^0.7.6"
+  }
+}

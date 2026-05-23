@@ -1,0 +1,67 @@
+{
+  "name": "@justscale/http",
+  "version": "0.1.0",
+  "description": "HTTP route factories and request handling for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/protocol/http"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "http",
+    "rest",
+    "api",
+    "router",
+    "typescript"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./builder": {
+      "source": "./src/builder/index.ts",
+      "types": "./dist/builder/index.d.ts",
+      "import": "./dist/builder/index.js",
+      "default": "./dist/builder/index.js"
+    },
+    "./testing": {
+      "source": "./src/testing.ts",
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/testing": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "peerDependenciesMeta": {
+    "@justscale/testing": {
+      "optional": true
+    }
+  }
+}

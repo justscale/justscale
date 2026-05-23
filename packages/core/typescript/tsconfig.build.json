@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.build.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@justscale/protobuf": ["../../misc/protobuf/dist/index.d.ts"],
+      "@justscale/cap-and-proto": ["../../misc/cap-and-proto/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/lib/**/*"]
+}

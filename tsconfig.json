@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "customConditions": ["source"],
+    "types": ["node"],
+    "plugins": [
+      { "name": "@justscale/typescript/language-service" }
+    ]
+  },
+  "include": ["packages/**/*", "examples/**/*"],
+  "exclude": ["node_modules", "**/dist", "packages/core/typescript/src/lib", "packages/core/typescript/example"]
+}

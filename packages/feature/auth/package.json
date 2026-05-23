@@ -1,0 +1,68 @@
+{
+  "name": "@justscale/auth",
+  "version": "0.1.0",
+  "description": "Authentication and authorization utilities for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/feature/auth"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "auth",
+    "authentication",
+    "authorization",
+    "typescript"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "justscale": {
+    "modes": {
+      "cli": {
+        "source": "./src/cli.ts",
+        "import": "./dist/cli.js"
+      }
+    }
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "source": "./src/testing.ts",
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../core/typescript/dist/compiler/ptsc.js -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "node ../../core/typescript/dist/compiler/ptsc.js --noEmit",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'test/*.test.ts' 'src/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@justscale/testing": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "zod": "^4.4.1"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "zod": "^4.3.6"
+  }
+}

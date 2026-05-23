@@ -1,0 +1,83 @@
+node_modules/
+dist/
+coverage/
+.coverage/
+*.log
+*.tsbuildinfo
+.DS_Store
+.idea/
+package-lock.json
+
+# Ignore dotfiles by default
+.*
+*.md
+
+# But keep these files
+!CORE_PHILOSOPHY.md
+!README.md
+!packages/**/README.md
+!.gitignore
+!.npmrc
+!.changeset/
+!.github/
+!.hooks/
+!.c8rc.json
+# Installer-shipped Claude Code skills (canonical source — repo root
+# .claude/skills symlinks here for our own dev workflow).
+!packages/misc/install/templates/
+!packages/misc/install/templates/**/*.md
+
+# Plans (local only)
+plans/
+
+# Generated proto declarations (virtual files)
+*.d.proto.ts
+
+# Turbo
+.turbo/
+
+# e2e proto roundtrip scratch output
+packages/misc/e2e/test/output/
+
+# TS build output in examples and docs (source .ts is tracked, emitted
+# .js/.d.ts/.map files are not)
+docs/**/*.js
+docs/**/*.d.ts
+docs/**/*.js.map
+docs/**/*.d.ts.map
+examples/*/src/**/*.js
+examples/*/src/**/*.d.ts
+examples/*/src/**/*.js.map
+examples/*/src/**/*.d.ts.map
+examples/*/migrations/**/*.js
+examples/*/migrations/**/*.d.ts
+examples/*/migrations/**/*.js.map
+examples/*/migrations/**/*.d.ts.map
+examples/*/test/**/*.js
+examples/*/test/**/*.d.ts
+examples/*/test/**/*.js.map
+examples/*/test/**/*.d.ts.map
+packages/**/src/**/*.js
+packages/**/src/**/*.d.ts
+packages/**/src/**/*.js.map
+packages/**/src/**/*.d.ts.map
+packages/**/test/**/*.js
+packages/**/test/**/*.d.ts
+packages/**/test/**/*.js.map
+packages/**/test/**/*.d.ts.map
+packages/**/example/**/*.js
+packages/**/example/**/*.d.ts
+packages/**/example/**/*.js.map
+packages/**/example/**/*.d.ts.map
+packages/**/examples/**/*.js
+packages/**/examples/**/*.d.ts
+packages/**/examples/**/*.js.map
+packages/**/examples/**/*.d.ts.map
+test/*.js
+test/*.d.ts
+test/*.js.map
+test/*.d.ts.map
+
+# Next.js
+.next/
+out/

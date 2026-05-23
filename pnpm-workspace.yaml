@@ -1,0 +1,10 @@
+packages:
+  - "packages/core/*"
+  - "packages/protocol/*"
+  - "packages/feature/*"
+  - "packages/adapters/*"
+  - "packages/misc/*"
+  - "packages/tooling/*"
+  - "docs"
+  - "examples/*"
+  - "packages/feature/hmr/test/fixtures/*"

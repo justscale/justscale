@@ -1,0 +1,48 @@
+{
+  "name": "justscale",
+  "description": "Type-safe backend framework for TypeScript",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git"
+  },
+  "homepage": "https://justscale.sh",
+  "type": "module",
+  "packageManager": "pnpm@10.6.3",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "ptsc --noEmit",
+    "test": "turbo run test --concurrency=1",
+    "lint": "eslint packages/core/*/src packages/core/*/test packages/adapters/*/src packages/adapters/*/test packages/feature/*/src packages/feature/*/test packages/protocol/*/src packages/protocol/*/test --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint --fix packages/core/*/src packages/core/*/test packages/adapters/*/src packages/adapters/*/test packages/feature/*/src packages/feature/*/test packages/protocol/*/src packages/protocol/*/test --no-error-on-unmatched-pattern",
+    "clean": "rm -rf packages/*/*/dist .turbo node_modules/.cache packages/*/*/*.tsbuildinfo",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "@eslint/js": "^10.0.1",
+    "@justscale/core": "workspace:*",
+    "@justscale/typescript": "workspace:^",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^25.6.0",
+    "c8": "^11.0.0",
+    "eslint": "^10.2.1",
+    "expect-type": "^1.3.0",
+    "globals": "^17.5.0",
+    "tsx": "^4.21.0",
+    "turbo": "^2.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.1",
+    "zod": "^4.4.1"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "postgres@3.4.9": "patches/postgres@3.4.9.patch"
+    }
+  }
+}

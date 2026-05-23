@@ -1,0 +1,24 @@
+diff --git a/src/connection.js b/src/connection.js
+index 1b1cccde43b4570d5d071d6ffaab2669b3c2065a..a28108c96548bbb97501eccf3cf45fd6ee0341f4 100644
+--- a/src/connection.js
++++ b/src/connection.js
+@@ -252,6 +252,19 @@ function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose
+   }
+ 
+   function nextWrite(fn) {
++    // Guard against the connection-teardown race: write() schedules nextWrite
++    // via setImmediate when the chunk is small; if sql.end() nulls the socket
++    // before the immediate fires, nextWrite previously crashed with
++    // "Cannot read properties of null (reading 'write')". Treat that as a
++    // benign post-close write — the data is already lost (socket gone) and
++    // the originating query was either confirmed before close or rejected
++    // via the regular sent[]/CONNECTION_CLOSED path. (jaenster patch)
++    if (socket === null) {
++      nextWriteTimer !== null && clearImmediate(nextWriteTimer)
++      chunk = nextWriteTimer = null
++      if (typeof fn === 'function') fn(Errors.connection('CONNECTION_CLOSED', options, null))
++      return false
++    }
+     const x = socket.write(chunk, fn)
+     nextWriteTimer !== null && clearImmediate(nextWriteTimer)
+     chunk = nextWriteTimer = null

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package example;
+
+// User represents a system user
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  UserRole role = 4;
+  repeated string tags = 5;
+}
+
+// UserRole defines the role of a user
+enum UserRole {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ADMIN = 2;
+}
+
+// CreateUserRequest is the request for creating a user
+message CreateUserRequest {
+  string email = 1;
+  string name = 2;
+  UserRole role = 3;
+}
+
+// CreateUserResponse is the response after creating a user
+message CreateUserResponse {
+  User user = 1;
+}
+
+// GetUserRequest is the request for getting a user by ID
+message GetUserRequest {
+  string id = 1;
+}
+
+// ListUsersRequest is the request for listing users
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// ListUsersResponse is the response for listing users
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+}
+
+// UserService provides user management operations
+service UserService {
+  // CreateUser creates a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
+  // GetUser retrieves a user by ID
+  rpc GetUser(GetUserRequest) returns (User);
+
+  // ListUsers returns a paginated list of users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // WatchUsers streams user updates
+  rpc WatchUsers(ListUsersRequest) returns (stream User);
+}

@@ -1,0 +1,35 @@
+{
+  "name": "create-justscale",
+  "version": "0.1.0",
+  "description": "Create a new JustScale project",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/misc/install"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "type": "module",
+  "bin": {
+    "create-justscale": "./bin/create-justscale.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "devDependencies": {
+    "@justscale/typescript": "workspace:*",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.20.6"
+  }
+}
