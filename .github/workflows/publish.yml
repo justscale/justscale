@@ -237,24 +237,14 @@ jobs:
           done
           pnpm $FILTER publish --provenance --access public --no-git-checks
 
-      - name: Commit and tag
-        # Only runs if every preceding step (including the real publish)
-        # succeeded, so we never push a tag for a release that didn't land.
-        # If npm has the release but this step fails (e.g. push race),
-        # rerun the workflow's commit/tag locally — npm publish is idempotent
-        # for an already-published version (it will skip).
+      - name: Release summary
+        # We don't auto-commit or auto-tag from CI — branch protection
+        # requires signed commits and the github-actions[bot] can't sign.
+        # After a successful publish, locally bump package.json and tag:
+        #   git pull && pnpm -r exec npm version <bump> --no-git-tag-version
+        #   git commit -am "release: v<version>" && git tag -s v<version>
+        #   git push && git push --tags
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add packages/*/*/package.json
-
           PACKAGES="${{ steps.dependents.outputs.packages }}"
-          git commit -m "release: v${{ steps.version.outputs.version }}
-
-          Released packages:
-          $(echo $PACKAGES | tr ' ' '\n' | sed 's/^/- /')"
-
-          git tag "v${{ steps.version.outputs.version }}"
-          git push
-          git push --tags
+          echo "Published v${{ steps.version.outputs.version }}:"
+          echo "$PACKAGES" | tr ' ' '\n' | sed 's/^/  - /'
