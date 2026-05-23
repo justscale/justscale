@@ -142,6 +142,17 @@ jobs:
           fi
           echo "Packages to release: ${{ steps.dependents.outputs.packages }}"
 
+      # ptsc (shipped by @justscale/typescript) is every other package's
+      # build command. Its bin target doesn't exist on a fresh checkout,
+      # so `pnpm install` doesn't link node_modules/.bin/ptsc. Bootstrap
+      # the compiler first, then re-install so bin links land for every
+      # consumer. Same pattern as the internal repo's ci.yml.
+      - name: Bootstrap compiler
+        run: pnpm --filter @justscale/typescript... build
+
+      - name: Link binaries
+        run: pnpm install --frozen-lockfile
+
       - name: Build changed packages
         run: |
           FILTER=""
@@ -149,9 +160,6 @@ jobs:
             FILTER="$FILTER --filter=$pkg"
           done
           pnpm turbo run build $FILTER
-
-      - name: Link binaries
-        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
