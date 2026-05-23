@@ -108,12 +108,12 @@ describe('SQL AST - Expression Nodes', () => {
 
     // Path parts are user-data keys that reach SQL inside '...' literals,
     // so a key containing ' would break out without escaping.
-    it("should escape single quotes inside path parts to prevent injection", () => {
+    it('should escape single quotes inside path parts to prevent injection', () => {
       const node = new JsonPath('data', ["k'='admin' --"], true);
       assert.strictEqual(node.toSql(), "data->>'k''=''admin'' --'");
     });
 
-    it("should escape single quotes in nested path parts", () => {
+    it('should escape single quotes in nested path parts', () => {
       const node = new JsonPath('data', ["a'b", 'c'], false);
       assert.strictEqual(node.toSql(), "data->'a''b'->'c'");
     });
@@ -140,7 +140,7 @@ describe('SQL AST - Expression Nodes', () => {
     });
 
     it('should reject column names with quotes', () => {
-      assert.throws(() => new ColumnRef("id\""), /Invalid SQL/);
+      assert.throws(() => new ColumnRef('id"'), /Invalid SQL/);
       assert.throws(() => new ColumnRef("id'"), /Invalid SQL/);
     });
 

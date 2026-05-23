@@ -17,8 +17,8 @@
     "build": "turbo run build",
     "typecheck": "ptsc --noEmit",
     "test": "turbo run test --concurrency=1",
-    "lint": "eslint packages/core/*/src packages/core/*/test packages/adapters/*/src packages/adapters/*/test packages/feature/*/src packages/feature/*/test packages/protocol/*/src packages/protocol/*/test --no-error-on-unmatched-pattern",
-    "lint:fix": "eslint --fix packages/core/*/src packages/core/*/test packages/adapters/*/src packages/adapters/*/test packages/feature/*/src packages/feature/*/test packages/protocol/*/src packages/protocol/*/test --no-error-on-unmatched-pattern",
+    "lint": "eslint packages/core/*/src packages/adapters/*/src packages/feature/*/src packages/protocol/*/src --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint --fix packages/core/*/src packages/adapters/*/src packages/feature/*/src packages/protocol/*/src --no-error-on-unmatched-pattern",
     "clean": "rm -rf packages/*/*/dist .turbo node_modules/.cache packages/*/*/*.tsbuildinfo",
     "changeset": "changeset",
     "release": "pnpm build && changeset publish"

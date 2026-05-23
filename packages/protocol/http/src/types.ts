@@ -25,7 +25,7 @@ export type JsonInput<T> = T extends readonly (infer E)[]
       : T;
 
 export interface TypedJsonResponse<TResponses extends ResponseMap> {
-    json(
+  json(
     data: JsonInput<TResponses extends { 200: infer T }
       ? T
       : TResponses[keyof TResponses]>,

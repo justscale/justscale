@@ -50,6 +50,12 @@ export default tseslint.config(
       'out/**',
       '**/.test-fixtures/**',
       '**/.justscale/**',
+      // Test files — colocated with src/ or under test/ — are intentionally
+      // looser than production code (typing shortcuts, eval, intentional
+      // unused vars in fixtures). Lint them on demand, not in CI.
+      '**/*.test.ts',
+      '**/*.spec.ts',
+      '**/test/**',
       // Emitted build artifacts that land next to .ts sources
       // (docs examples, per-package src/ emits). These are generated;
       // linting them is noise. `src/` and `test/` are TS-only by

@@ -98,7 +98,7 @@ describe('Security: query compiler against runtime-input field names', () => {
     assert.strictEqual(assertNonNegativeInt(Number.MAX_SAFE_INTEGER, 'limit'), Number.MAX_SAFE_INTEGER);
   });
 
-  it("JSONB-mode order key with single quote in path stays inside a SQL literal", () => {
+  it('JSONB-mode order key with single quote in path stays inside a SQL literal', () => {
     const compiler = new PgQueryCompiler({ storageMode: 'jsonb' });
     const compiled = compiler.compileOrderBy({
       "k'='admin'--": 'asc',
