@@ -204,6 +204,6 @@
   },
   "devDependencies": {
     "@justscale/typescript": "workspace:*",
-    "esbuild": "^0.27.7"
+    "esbuild": "^0.28.0"
   }
 }
