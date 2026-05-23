@@ -191,7 +191,7 @@
   },
   "peerDependencies": {
     "@justscale/typescript": "workspace:*",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.28.0",
     "zod": "^4.3.6"
   },
   "peerDependenciesMeta": {
@@ -204,6 +204,6 @@
   },
   "devDependencies": {
     "@justscale/typescript": "workspace:*",
-    "esbuild": "^0.27.7"
+    "esbuild": "^0.28.0"
   }
 }

@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
         with:
@@ -86,7 +86,7 @@ jobs:
         run: |
           if [ -z "${{ steps.last-tag.outputs.tag }}" ]; then
             # No previous tag - get all publishable packages
-            CHANGED_PACKAGES=$(pnpm ls -r --depth -1 --json | jq -r '.[].name' | grep "^@justscale/" | tr '\n' ' ')
+            CHANGED_PACKAGES=$(pnpm ls -r --depth -1 --json | jq -r '.[].name' | grep -E "^(@justscale/|create-justscale)" | tr '\n' ' ')
           else
             # Get changed files since last tag
             CHANGED_FILES=$(git diff --name-only ${{ steps.last-tag.outputs.ref }}..HEAD)
@@ -116,7 +116,7 @@ jobs:
           # For each changed package, find packages that depend on it (only in /packages)
           for changed_pkg in $CHANGED; do
             # Find dependents using turbo
-            DEPS=$(pnpm turbo run build --filter="...^$changed_pkg" --dry-run=json 2>/dev/null | jq -r '.packages[]' | grep "^@justscale/" || true)
+            DEPS=$(pnpm turbo run build --filter="...^$changed_pkg" --dry-run=json 2>/dev/null | jq -r '.packages[]' | grep -E "^(@justscale/|create-justscale)" || true)
             for dep in $DEPS; do
               if ! echo "$ALL_PACKAGES" | grep -q "$dep"; then
                 # Verify it's in /packages directory

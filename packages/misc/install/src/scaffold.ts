@@ -15,10 +15,17 @@ export interface ScaffoldOptions {
   projectName: string
   system: SystemInfo
   coreVersion?: string
+  typescriptVersion?: string
 }
 
 export function scaffoldProject(options: ScaffoldOptions): string[] {
-  const { projectDir, projectName, system, coreVersion = '^0.1.0' } = options;
+  const {
+    projectDir,
+    projectName,
+    system,
+    coreVersion = '^0.1.0',
+    typescriptVersion = '^0.1.0',
+  } = options;
   const generated: string[] = [];
 
   mkdirSync(projectDir, { recursive: true });
@@ -38,7 +45,7 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
       '@justscale/core': coreVersion,
     },
     devDependencies: {
-      '@justscale/typescript': coreVersion,
+      '@justscale/typescript': typescriptVersion,
       'tsx': '^4.0.0',
     },
   }, null, 2) + '\n', generated);

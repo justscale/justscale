@@ -79,4 +79,4 @@ just install <plugin>    # installs and wires a JustScale plugin
 
 ## Docs
 
-https://justscale.sh/overview/quick-start
+https://justscale.sh/docs/overview/quick-start

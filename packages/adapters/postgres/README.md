@@ -73,4 +73,4 @@ Services inject the abstract `ModelRepository.of(User)` token and stay storage-a
 
 ## Docs
 
-https://justscale.sh/postgres/overview · https://justscale.sh/repositories/overview · https://justscale.sh/fundamentals/locks · https://justscale.sh/fundamentals/channels
+https://justscale.sh/docs/postgres/overview · https://justscale.sh/docs/repositories/overview · https://justscale.sh/docs/fundamentals/locks · https://justscale.sh/docs/fundamentals/channels

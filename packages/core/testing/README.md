@@ -41,4 +41,4 @@ test('user service', async (t) => {
 
 ## Docs
 
-https://justscale.sh/testing/overview
+https://justscale.sh/docs/techniques/testing

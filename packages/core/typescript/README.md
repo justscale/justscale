@@ -85,7 +85,7 @@ const order = await orders.findById(orderId);
 using order = await orders.findById(orderId);
 ```
 
-Full list: https://justscale.sh/compiler/diagnostics.
+Full list: https://justscale.sh/docs/processes/compiler.
 
 ## Programmatic API
 
@@ -125,4 +125,4 @@ The runtime pairs with `@justscale/core/process` to execute the opcodes, seriali
 
 ## Docs
 
-https://justscale.sh/processes/signals · https://justscale.sh/compiler/overview · [VSCODE.md](./VSCODE.md) for detailed editor setup.
+https://justscale.sh/docs/processes/signals · https://justscale.sh/docs/processes/compiler · [VSCODE.md](./VSCODE.md) for detailed editor setup.

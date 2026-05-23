@@ -54,7 +54,7 @@ const app = JustScale()
 - `TwoFactorController` — `GET /auth/2fa/status`, `POST /auth/2fa/setup`, `POST /auth/2fa/verify`, `DELETE /auth/2fa`
 - `PasswordController` — `POST /auth/forgot-password`, `POST /auth/reset-password`
 
-Request and response shapes are exported as zod schemas (`RegisterBody`, `LoginBody`, `AuthResponse`, etc.) — use them to type your client or generate OpenAPI via `@justscale/feature-openapi`.
+Request and response shapes are exported as zod schemas (`RegisterBody`, `LoginBody`, `AuthResponse`, etc.) — use them to type your client or to drive OpenAPI / RPC generation.
 
 ## Services (when you skip the endpoints)
 
@@ -88,7 +88,7 @@ Get('/profile')
 - `User` — email + password hash + optional name + `emailVerifiedAt` + TOTP fields. Register with `createPgModel(User, { table: 'users' })` or any other repository binding.
 - `Session` — rotating session tokens; keyed by the user reference.
 
-Both are `defineModel` classes, so they compose with `@justscale/permission` (`User.can = { ... }`) and show up in the OpenAPI spec via `modelToJsonSchema`.
+Both are `defineModel` classes, so they integrate with the rest of the JustScale model layer (queries, repositories, references).
 
 ## Durable processes
 
@@ -113,4 +113,4 @@ See `src/cli.ts` for the command definitions.
 
 ## Docs
 
-https://justscale.sh/features/auth
+https://justscale.sh/docs/features/auth

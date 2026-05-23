@@ -4,7 +4,7 @@ The foundation every JustScale app sits on. `@justscale/core` is the DI containe
 
 The distinguishing idea: **composition is validated at compile time.** A missing dependency is a type error, not a runtime crash. You get that by describing services, controllers, and features as values with typed dependency tokens and letting `build()` check the graph.
 
-Full docs: [justscale.sh](https://justscale.sh) — start at [overview/philosophy](https://justscale.sh/overview/philosophy).
+Full docs: [justscale.sh](https://justscale.sh) — start at [overview/philosophy](https://justscale.sh/docs/overview/philosophy).
 
 ## Install
 
@@ -47,7 +47,7 @@ Real apps usually declare per-environment config through `createEnvironment` + a
 
 ## Primitives
 
-### Services — [justscale.sh/fundamentals/services](https://justscale.sh/fundamentals/services)
+### Services — [justscale.sh/docs/fundamentals/services](https://justscale.sh/docs/fundamentals/services)
 
 ```ts
 class UserService extends defineService({
@@ -63,7 +63,7 @@ class UserService extends defineService({
 
 Abstract tokens (`defineAbstract`) let services declare "I need _something_ that implements this interface" without naming a concrete class. Bind a concrete implementation at compose time with `bindService(AbstractToken, ConcreteService)`. Same pattern for repositories via `bindRepository(ModelRepository.of(User), UserRepository)`.
 
-### Controllers — [justscale.sh/fundamentals/controllers](https://justscale.sh/fundamentals/controllers)
+### Controllers — [justscale.sh/docs/fundamentals/controllers](https://justscale.sh/docs/fundamentals/controllers)
 
 ```ts
 createController({
@@ -75,9 +75,9 @@ createController({
 });
 ```
 
-Controllers are DI units that hold routes. Route factories come from transport packages — `Get`/`Post`/... from `@justscale/http`, `Ws` from `@justscale/websocket`, `SSE` from `@justscale/sse`, `Cli` from `@justscale/core/cli`, `Procedure` from contracts — and all flow through the same `.use(middleware).guard(...).handle(...)` pipeline with per-route typing.
+Controllers are DI units that hold routes. Route factories come from transport packages — `Get`/`Post`/... from `@justscale/http`, `Cli` from `@justscale/core/cli` — and all flow through the same `.use(middleware).guard(...).handle(...)` pipeline with per-route typing. Additional transports (WebSocket, SSE, RPC) graduate from `next` as those packages settle.
 
-### Features — [justscale.sh/fundamentals/features](https://justscale.sh/fundamentals/features)
+### Features — [justscale.sh/docs/fundamentals/features](https://justscale.sh/docs/fundamentals/features)
 
 ```ts
 export const AuthFeature = createFeatureBuilder()
@@ -87,22 +87,6 @@ export const AuthFeature = createFeatureBuilder()
 ```
 
 Features are shippable capability bundles: a named package of services + controllers + config requirements that other apps consume via `.add(AuthFeature)`. `.requires(...)` bubbles DI requirements up to whoever adds the feature — the requirement is checked at their `build()`, not yours.
-
-### Contracts — [justscale.sh/rpc](https://justscale.sh/rpc/overview)
-
-```ts
-import { defineContract, rpc } from '@justscale/core/contract';
-
-class UserContract extends defineContract({
-  protocol: 'grpc',
-  serviceName: 'user.UserService',
-  methods: {
-    getUser: rpc(GetUserRequestSchema, UserSchema),
-  },
-}) {}
-```
-
-Contracts describe a typed set of methods independent of transport. A controller implements a contract via `createController.implements(UserContract, ...)`; the same implementation can be served over gRPC (`@justscale/rpc`), in-process, or routed across cluster nodes. Contracts also act as DI tokens — injecting `UserContract` gets you a client that resolves locally when bound, remotely otherwise.
 
 ## Composition
 
@@ -118,14 +102,13 @@ JustScale()
 
 The builder is the unit of composition. Every `.add()` contributes services, controllers, features, or bindings into a scope. `.build()` returns a validated `BuiltApp` with `.serve()`, `.match()`, `.run()`, and friends.
 
-### Sub-apps — [justscale.sh/advanced/plugins](https://justscale.sh/advanced/plugins)
+### Sub-apps
 
 ```ts
 const AdminSubApp = JustScale()
   .requires(CatalogService)
   .requires(InventoryService)
   .add(AdminController)
-  .add(OpenApiFeature)
   .build();
 
 const Shop = JustScale()
@@ -140,9 +123,9 @@ A `JustScale()` compilation unit with `.requires(...)` is a sub-app. Mounting it
 
 ### `AbstractContainer`
 
-Reflection on a scope. Inject `AbstractContainer` into a service or controller and you get a typed view of the controllers/services/features bound to that scope. `@justscale/feature-openapi` uses it to emit a per-scope OpenAPI spec — add the feature to a sub-app and the spec covers just that sub-app.
+Reflection on a scope. Inject `AbstractContainer` into a service or controller and you get a typed view of the controllers/services/features bound to that scope. Useful for per-scope introspection (e.g. generating an OpenAPI spec scoped to a single sub-app).
 
-## Durable processes — [justscale.sh/processes/signals](https://justscale.sh/processes/signals)
+## Durable processes — [justscale.sh/docs/processes/signals](https://justscale.sh/docs/processes/signals)
 
 ```ts
 import { createProcess, signal, race, delay } from '@justscale/core/process';
@@ -167,9 +150,9 @@ const orderFulfillment = createProcess({
 });
 ```
 
-Durable processes survive restarts. Their state is serialized through the `Processable` protocol, timers and signals resume transparently, and the compiler (via `@justscale/typescript`'s `ptsc`) rewrites the handler into a safely resumable shape. The runtime is transport-agnostic — signals can fire from HTTP, CLI, WS, cluster, anywhere.
+Durable processes survive restarts. Their state is serialized through the `Processable` protocol, timers and signals resume transparently, and the compiler (via `@justscale/typescript`'s `ptsc`) rewrites the handler into a safely resumable shape. The runtime is transport-agnostic — signals can fire from HTTP, CLI, cluster, anywhere.
 
-## Models — [justscale.sh/models/overview](https://justscale.sh/models/overview)
+## Models — [justscale.sh/docs/models/overview](https://justscale.sh/docs/models/overview)
 
 ```ts
 import { defineModel, field } from '@justscale/core/models';
@@ -191,15 +174,15 @@ References (`field.ref(OtherModel)`) are first-class values, not string IDs. Con
 
 ## Distributed primitives
 
-### Locks — [justscale.sh/fundamentals/locks](https://justscale.sh/fundamentals/locks)
+### Locks — [justscale.sh/docs/fundamentals/locks](https://justscale.sh/docs/fundamentals/locks)
 
 Abstract lock API with an `acquire(key, opts)` signature that returns a disposable guard — integrates with the `using` statement for auto-release. The default provider is in-memory (good for tests). `@justscale/postgres` provides a Postgres advisory-lock backend that coordinates across instances, so locks survive being held from different processes hitting the same database.
 
-### Channels — [justscale.sh/fundamentals/channels](https://justscale.sh/fundamentals/channels)
+### Channels — [justscale.sh/docs/fundamentals/channels](https://justscale.sh/docs/fundamentals/channels)
 
 Typed pub/sub with async iterables. `createChannels({ ... })` declares a set of named channels with per-message schemas; subscribers consume via `for await` on a subscription. The default `MemoryChannelBackend` works for a single process; `@justscale/postgres`'s `createPostgresChannelBackend` fans messages out over `LISTEN/NOTIFY` so multiple app instances pointed at the same database all see each publish. Message encoding goes through the `Processable` protocol so domain values (model refs, dates, decimals) survive the round-trip.
 
-## Configuration — [justscale.sh/configuration/overview](https://justscale.sh/configuration/overview)
+## Configuration — [justscale.sh/docs/configuration/overview](https://justscale.sh/docs/configuration/overview)
 
 ```ts
 import { defineConfigPartial, createConfig, Config } from '@justscale/core';
@@ -233,7 +216,7 @@ Everything beyond the bare `@justscale/core` import lives behind a subpath so yo
 - `@justscale/core/memory` — in-memory adapter implementations (tests / prototyping)
 - `@justscale/core/middleware`, `/logger`, `/lifecycle`, `/plugin` — narrower slices of the bare surface
 
-## `just` CLI — [justscale.sh/cli/usage](https://justscale.sh/cli/usage)
+## `just` CLI — [justscale.sh/docs/cli/usage](https://justscale.sh/docs/cli/usage)
 
 Installing this package installs the `just` binary:
 
@@ -249,13 +232,11 @@ just install <plugin>  # install a JustScale plugin package
 
 ## Observability
 
-Services and controllers run under an async context with request tracing, scope management, and pluggable instrumentation. `registerInstrumentation` lets OpenTelemetry / Datadog / custom collectors subscribe without the app code having to know; `@justscale/feature-otel` is a ready-made wiring.
+Services and controllers run under an async context with request tracing, scope management, and pluggable instrumentation. `registerInstrumentation` lets OpenTelemetry / Datadog / custom collectors subscribe without the app code having to know.
 
 ## More
 
-- [Quick start](https://justscale.sh/overview/quick-start)
-- [Core philosophy](https://justscale.sh/overview/philosophy)
-- [Repository pattern](https://justscale.sh/repositories/overview)
-- [Cluster overview](https://justscale.sh/cluster/overview)
-- [Permissions](https://justscale.sh/features/permissions)
-- [OpenAPI](https://justscale.sh/techniques/openapi)
+- [Quick start](https://justscale.sh/docs/overview/quick-start)
+- [Core philosophy](https://justscale.sh/docs/overview/philosophy)
+- [Repository pattern](https://justscale.sh/docs/repositories/overview)
+- [Cluster overview](https://justscale.sh/docs/cluster/overview)

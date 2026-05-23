@@ -29,7 +29,7 @@ createController({
 });
 ```
 
-The HTTP server binds to `HttpConfig.port` (default `6142`) and `HttpConfig.host` (default `0.0.0.0`). Routes participate in the DI graph — guards and middleware are typed through, and `AbstractContainer` reflection powers `@justscale/feature-openapi`.
+The HTTP server binds to `HttpConfig.port` (default `6142`) and `HttpConfig.host` (default `0.0.0.0`). Routes participate in the DI graph — guards and middleware are typed through, and `AbstractContainer` reflection lets companion packages introspect the route surface.
 
 ## Features
 
@@ -37,8 +37,8 @@ The HTTP server binds to `HttpConfig.port` (default `6142`) and `HttpConfig.host
 - **CORS** — opt-in allowlist, not enabled by default
 - **Client-IP trust** — `X-Forwarded-For` gating configurable via `HttpConfig`
 - **Upload** — `upload(field)` middleware for multipart file uploads
-- **OpenAPI** — routes are introspectable; `@justscale/feature-openapi` generates specs automatically
+- **Introspectable** — routes carry their schemas at runtime, so OpenAPI / client-codegen layers can consume them
 
 ## Docs
 
-https://justscale.sh/techniques/openapi · https://justscale.sh/fundamentals/middleware
+https://justscale.sh/docs/fundamentals/middleware
