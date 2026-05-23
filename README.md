@@ -1,6 +1,12 @@
 # JustScale
 
-The TypeScript backend that survives the restart.
+Write a single-server backend. It just scales across a cluster.
+
+**[Documentation →](https://justscale.sh)** &nbsp;·&nbsp; [Philosophy](https://justscale.sh/docs/overview/philosophy) &nbsp;·&nbsp; [Quick Start](https://justscale.sh/docs/overview/quick-start) &nbsp;·&nbsp; [Why it scales](https://justscale.sh/docs/advanced/why-it-scales)
+
+[![npm](https://img.shields.io/npm/v/%40justscale%2Fcore?label=%40justscale%2Fcore)](https://www.npmjs.com/package/@justscale/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-24%2B-brightgreen)](#requirements)
 
 JustScale lets you write workflows as plain async code. The compiler makes
 them durable. The type system makes them distributed-safe. Domain code
@@ -39,8 +45,9 @@ machine; you never see that.
 - **Distributed-safe by construction** — `repo.update` / `save` /
   `delete` require `Locked<T>`. The only way to obtain one is
   `using x = await repo.lock(ref)` — atomic with the read.
-- **Transport-agnostic controllers** — same routes serve HTTP,
-  WebSocket, gRPC, CLI, SSE.
+- **Transport-agnostic controllers** — the same route definition is
+  served by HTTP and CLI today; WebSocket, SSE, and gRPC graduate from
+  `next` as those packages settle.
 - **Compile-time DI** — missing dependencies fail the build, not the
   prod node.
 - **Custom TS compiler** (`ptsc`) — process transforms + IDE support.
@@ -78,9 +85,8 @@ out of `next` as their APIs settle.
 - Node.js 24+
 - pnpm 10.6+ (for development)
 - PostgreSQL 16+ (for the postgres adapter)
-- Redis 7+ (for the redis adapter)
 
-Local dev runs against real Postgres / Redis via `docker compose up -d`.
+Local dev runs against real Postgres via `docker compose up -d`.
 `pglite` is for tests + CLI tooling, not for `just dev`.
 
 ## Documentation
@@ -102,7 +108,7 @@ cd justscale
 pnpm install
 
 pnpm build       # build all packages
-pnpm test        # run tests (needs docker pg + redis)
+pnpm test        # run tests (needs docker pg)
 pnpm lint        # check linting
 pnpm typecheck   # workspace typecheck
 ```
