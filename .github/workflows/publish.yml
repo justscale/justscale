@@ -208,15 +208,39 @@ jobs:
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Dry-run publish
+        # Validates tarball structure, missing fields, file patterns, and
+        # access before we touch git. If this fails, no tag is created.
+        run: |
+          FILTER=""
+          for pkg in ${{ steps.dependents.outputs.packages }}; do
+            FILTER="$FILTER --filter=$pkg"
+          done
+          pnpm $FILTER publish --provenance --access public --no-git-checks --dry-run
+
+      - name: Publish to npm
+        # Auth via npm Trusted Publishing (OIDC, id-token: write above).
+        # No NPM_TOKEN needed — npm picks up the GH-issued OIDC token from
+        # --provenance and the registry-configured Trusted Publisher.
+        run: |
+          FILTER=""
+          for pkg in ${{ steps.dependents.outputs.packages }}; do
+            FILTER="$FILTER --filter=$pkg"
+          done
+          pnpm $FILTER publish --provenance --access public --no-git-checks
+
       - name: Commit and tag
+        # Only runs if every preceding step (including the real publish)
+        # succeeded, so we never push a tag for a release that didn't land.
+        # If npm has the release but this step fails (e.g. push race),
+        # rerun the workflow's commit/tag locally — npm publish is idempotent
+        # for an already-published version (it will skip).
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage all changed package.json files
           git add packages/*/*/package.json
 
-          # Create commit with list of packages
           PACKAGES="${{ steps.dependents.outputs.packages }}"
           git commit -m "release: v${{ steps.version.outputs.version }}
 
@@ -226,21 +250,3 @@ jobs:
           git tag "v${{ steps.version.outputs.version }}"
           git push
           git push --tags
-
-      - name: Publish to npm
-        # Auth via npm Trusted Publishing (OIDC, id-token: write above).
-        # No NPM_TOKEN needed — npm picks up the GH-issued OIDC token from
-        # --provenance and the registry-configured Trusted Publisher.
-        run: |
-          PACKAGES="${{ steps.dependents.outputs.packages }}"
-
-          for pkg in $PACKAGES; do
-            echo "Publishing $pkg..."
-            # Find package directory
-            pkg_dir=$(pnpm ls -r --depth -1 --json | jq -r ".[] | select(.name == \"$pkg\") | .path")
-
-            # Publish from package directory
-            cd "$pkg_dir"
-            npm publish --provenance --access public
-            cd - > /dev/null
-          done
