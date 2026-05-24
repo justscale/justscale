@@ -1,6 +1,6 @@
 # JustScale
 
-Write a single-server backend. It just scales across a cluster.
+The TypeScript backend framework where plain code just scales.
 
 **[Documentation →](https://justscale.sh)** &nbsp;·&nbsp; [Philosophy](https://justscale.sh/docs/overview/philosophy) &nbsp;·&nbsp; [Quick Start](https://justscale.sh/docs/overview/quick-start) &nbsp;·&nbsp; [Why it scales](https://justscale.sh/docs/advanced/why-it-scales)
 
@@ -8,9 +8,11 @@ Write a single-server backend. It just scales across a cluster.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node-24%2B-brightgreen)](#requirements)
 
-JustScale lets you write workflows as plain async code. The compiler makes
-them durable. The type system makes them distributed-safe. Domain code
-never sees a string ID.
+JustScale is a general-purpose TypeScript backend framework. You write plain,
+straight-line code; the compiler makes long-running workflows durable, the type
+system keeps it correct, and domain code never sees a string ID - and the same
+code scales from one instance to many. Like Go, where blocking code just
+scales, for TypeScript backends.
 
 ```typescript
 export const orderFulfillment = createProcess({
