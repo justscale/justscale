@@ -262,12 +262,12 @@ Claude Code:
   (durable processes, ID-free domain, type-states, distributed-first)
   and the canonical project layout. Auto-loads when starting work on
   this codebase.
-- \`/new-process\` — scaffold a durable process (signals + handler) with
-  the framework's distributed-safety rules baked in.
-- \`/audit-domain-purity\` — static check for ID leaks, infra imports
-  from domain, hand-edited migrations, missing \`Locked<T>\`.
-- \`/multi-instance-test\` — scaffold a two-instance e2e test that
-  proves a behavior holds across nodes (the canonical JustScale test
+- \`/justscale-new-process\` — scaffold a durable process (signals +
+  handler) with the framework's distributed-safety rules baked in.
+- \`/justscale-audit-domain-purity\` — static check for ID leaks, infra
+  imports from domain, hand-edited migrations, missing \`Locked<T>\`.
+- \`/justscale-multi-instance-test\` — scaffold a two-instance e2e test
+  that proves a behavior holds across nodes (the canonical JustScale test
   shape for distributed primitives).
 
 Edit them in place — they're yours now.

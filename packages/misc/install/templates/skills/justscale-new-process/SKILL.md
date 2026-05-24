@@ -1,19 +1,19 @@
 ---
-name: new-process
+name: justscale-new-process
 description: Scaffold a new JustScale durable process — generates `<name>.signals.ts` and `<name>.process.ts` matching this repo's idiom. Forces `.types({...})` on every signal path param, `Locked<T>` mutators, no string IDs, imports only from `@justscale/core/process` and `@justscale/core/models`. Trigger when the user asks to create a process, durable workflow, saga, or signal-driven flow.
 ---
 
-# Skill: new-process
+# Skill: justscale-new-process
 
-Scaffold a new durable process. Match the simple-app idiom — every signal
-path param `.types()`d, every mutator `Locked<T>`, no string IDs leaking
-through.
+Scaffold a new durable process. Match the `order-fulfillment` idiom —
+every signal path param `.types()`d, every mutator `Locked<T>`, no string
+IDs leaking through.
 
 ## Usage
 
-`/new-process <name> [Model]`
+`/justscale-new-process <name> [Model]`
 
-Example: `/new-process orderFulfillment Order`
+Example: `/justscale-new-process orderFulfillment Order`
 
 If the user didn't specify a Model or a domain folder, ask once.
 Placing files in the wrong domain folder is harder to fix than asking.
@@ -35,8 +35,8 @@ the first time is faster than chasing type errors.
    forms are valid:
    - Explicit: `.types({ cart: Cart })` — for path `/cart/:cart/...`
    - Lowercased shorthand: `.types({ Cart })` — also for `:cart`
-   Prefer the explicit form. It's what `examples/simple-app/` uses and
-   it's unambiguous when param names don't match model names.
+   Prefer the explicit form. It's what `examples/order-fulfillment/` uses
+   and it's unambiguous when param names don't match model names.
 2. **Service mutators take `Locked<T>`** — never `Ref<T>` or string ID.
    If a method changes state, its signature must declare the lock.
 3. **Path parameter names match the model token in `.types({...})`.** A
@@ -94,20 +94,26 @@ export const <name> = createProcess({
 
 The canonical examples are:
 
-- `examples/simple-app/src/domains/cart/cart.signals.ts` — explicit
-  `.types({ cart: Cart })` form, `.data<{...}>()` payloads.
-- `examples/simple-app/src/domains/cart/cart-lifecycle.process.ts` —
-  `while (true) { race + signal/delay switch }` shape.
+- `examples/order-fulfillment/src/domains/order/order.signals.ts` —
+  explicit `.types({ order: Order })` form.
+- `examples/order-fulfillment/src/domains/order/order-fulfillment.process.ts`
+  — the `race(signal, delay)` switch shape, started with
+  `await orderFulfillment([Order.ref(order)])`.
 
 When in doubt, copy the structure of those files.
 
 ## After generating
 
 - Print both file paths.
-- Remind the user to register the signal class and the process in the
-  domain's `.feature.ts` (or `app.ts` for tiny projects):
-  - `.add(<Name>Signals)`
-  - `.add(<name>)`
+- Remind the user to wire the new files into `app.ts` (or the domain's
+  `.feature.ts`):
+  - `.add(<Name>Signals)` — the signal class is a service. Add it.
+  - `import './<name>.process.js';` — `createProcess` self-registers on
+    import, so importing the file IS how the process gets wired. Do NOT
+    `.add(<name>)`: under the test/register loader the builder misreads
+    the process callable and throws `token is not a constructor`. The
+    bare import is the portable form (see
+    `examples/order-fulfillment/src/app.ts`).
 - Do NOT modify `app.ts` or `*.feature.ts` automatically. Bootstrap
   edits cause merge churn — let the user wire it.
 

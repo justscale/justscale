@@ -1,14 +1,15 @@
 ---
-name: multi-instance-test
-description: Scaffold a JustScale multi-instance e2e test that spawns two real Node worker processes coordinating through a shared Postgres + Redis. Verifies cross-instance invariants — lock mutual exclusion, signal NOTIFY routing, channel delivery, process resumption after crash. Use when testing distributed primitives, NEVER for single-node logic.
+name: justscale-multi-instance-test
+description: Scaffold a JustScale multi-instance e2e test that spawns two real Node worker processes coordinating through a shared Postgres. Verifies cross-instance invariants — lock mutual exclusion, signal NOTIFY routing, channel delivery, process resumption across nodes. Use when testing distributed primitives, NEVER for single-node logic.
 ---
 
-# Skill: multi-instance-test
+# Skill: justscale-multi-instance-test
 
 Scaffold an e2e test that spawns TWO real worker processes and asserts an
 invariant holds across them. The canonical pattern lives at
-`packages/misc/e2e/test/mixed-adapter-multi-process.e2e.test.ts`. Read it
-before extending it.
+`examples/order-fulfillment/test/multi-instance.e2e.test.ts` — a process
+started on one node, resumed by a signal sent through another, all
+coordinated through one shared Postgres. Read it before extending it.
 
 ## Why two real processes
 
@@ -28,9 +29,9 @@ coordinating through a real shared backend.
 
 ## Requirements
 
-- Docker Postgres on port `5433` (default `PG_URL=postgres://justscale:justscale@localhost:5433/postgres`).
-- Docker Redis on port `6380` (default `REDIS_URL=redis://localhost:6380`).
-- The test should `before(...)` probe both and **skip with a clear message** if either is unreachable. Don't fail — let CI decide.
+- Docker Postgres on port `5433` (default `PG_URL=postgres://justscale:justscale@localhost:5433/postgres`). Postgres alone is enough — locks (advisory), channels (LISTEN/NOTIFY), and durable processes all have Postgres backends in the public release.
+- Redis is optional. If the Redis adapter is installed, parameterize the lock/channel backend to cover the mixed-adapter matrix too; otherwise stick to Postgres.
+- The test should `before(...)` probe the backend and **skip with a clear message** if it's unreachable. Don't fail — let CI decide.
 
 ## Two-file pattern
 
@@ -167,8 +168,8 @@ describe('<scenario>', () => {
 - **Don't** put both apps in one Node process via `JustScale().build()`
   twice. They'd share memory and module-level state — every distributed
   bug invisible.
-- **Don't** mock the shared backend. The point is real pg/redis under
-  contention.
+- **Don't** mock the shared backend. The point is a real Postgres (and
+  Redis, if you're covering it) under contention.
 - **Don't** rely on `app.serve({ socketPath })`. The cluster socket is for
   CLI ↔ app, not for two workers to find each other. Set
   `JUSTSCALE_NO_SOCKET=1` and coordinate through the chosen distributed
@@ -180,6 +181,7 @@ describe('<scenario>', () => {
 - Remind the user: run with `tsx --test <driver>`. Don't add to the
   package's `test` script until it passes twice clean — leaked workers
   between runs are the most common failure mode.
-- Read the canonical e2e (`mixed-adapter-multi-process.e2e.test.ts`) for
-  details on liveness probes, port collision avoidance, and adapter-matrix
-  parameterization.
+- Read the canonical e2e
+  (`examples/order-fulfillment/test/multi-instance.e2e.test.ts`) for
+  details on liveness probes, port collision avoidance, and how a process
+  started on one node is driven to completion by a signal from another.

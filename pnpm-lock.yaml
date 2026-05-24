@@ -59,6 +59,34 @@ importers:
         specifier: ^4.4.1
         version: 4.4.3
 
+  examples/order-fulfillment:
+    dependencies:
+      '@justscale/core':
+        specifier: workspace:*
+        version: link:../../packages/core/core
+      '@justscale/postgres':
+        specifier: workspace:*
+        version: link:../../packages/adapters/postgres
+    devDependencies:
+      '@justscale/testing':
+        specifier: workspace:*
+        version: link:../../packages/core/testing
+      '@justscale/typescript':
+        specifier: workspace:*
+        version: link:../../packages/core/typescript
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.9.1
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9(patch_hash=f90fc90c62322b330dd1e200dda9d259ad38706ad9af3826cd26a3fd496eabd3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.22.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/adapters/postgres:
     dependencies:
       postgres:

@@ -44,7 +44,7 @@ describe('isSafePathSegment', () => {
 
   it('accepts normal skill names', () => {
     assert.strictEqual(isSafePathSegment('justscale-concepts'), true);
-    assert.strictEqual(isSafePathSegment('new-process'), true);
+    assert.strictEqual(isSafePathSegment('justscale-new-process'), true);
     assert.strictEqual(isSafePathSegment('my_skill_123'), true);
   });
 

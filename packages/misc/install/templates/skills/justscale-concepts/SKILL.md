@@ -10,7 +10,8 @@ constrain its API, and the canonical project layout — so subsequent code
 generation matches the framework's grain instead of fighting it.
 
 The full philosophy lives at `CORE_PHILOSOPHY.md` in the repo root. The
-canonical example project is `examples/simple-app/`. When in doubt, read
+canonical example project is `examples/order-fulfillment/` in the
+JustScale repo (github.com/justscale/justscale). When in doubt, read
 those — this skill is a fast load for what's already there.
 
 ## What JustScale is
@@ -19,6 +20,14 @@ A TypeScript backend framework where **domain code describes what
 happens, not how**. Infrastructure (databases, persistence across
 restarts, coordination across nodes) is removed from the surface area
 you write. The code reads like a description of the workflow.
+
+The litmus test: the silly t-shirt pseudocode (`while alive: if not
+coffee: get_coffee(); work()`) is readable because it states intent, not
+plumbing. JustScale's goal is to make that real — a poker hand, a
+subscription, an order fulfillment reads as the sequence of what happens,
+and the framework supplies the persistence, locking, and cross-node
+routing underneath. **Write a single-server backend. It just scales a
+cluster.**
 
 ## The four principles
 
@@ -121,10 +130,38 @@ across 20 nodes, unchanged. Four mechanical rules close the loop:
 - Signals carry routable identity. Every signal path param goes through
   `.types({...})`.
 
+## More principles (the rest of CORE_PHILOSOPHY.md)
+
+- **Models are services.** A model instance's prototype IS a resolved
+  service. `this.payments` on an instance walks the prototype chain to
+  the injected, framework-resolved singleton. Fields are own properties;
+  methods come from the class; dependencies come from the prototype.
+- **References replace relationships.** `field.ref(User)` stores a
+  `Reference<User>`, not a string FK. A reference is `PromiseLike` —
+  `await post.author` resolves it. Type-safe and memoized (same key =
+  same object via WeakRef).
+- **Adapters own their concerns.** The domain defines models; the
+  adapter decides the key shape (UUID/serial/composite), how system
+  fields are stored, and how queries optimize. Swapping Postgres for
+  in-memory changes zero domain code.
+- **Async context is the framework.** `AsyncLocalStorage` tracks which
+  instance you're in, so `Model.ref(...)` works in any callback and
+  multiple framework instances stay isolated in one process. Never
+  module-level mutable state.
+- **The framework composes and reflects itself.** A `JustScale()` with
+  `.requires(...)` IS a sub-app. Wrappers (HTTP prefixes, CLI
+  namespaces) are sub-apps that rebind a service. Every scope exposes
+  `AbstractContainer` — a queryable view tools inject to ask what's
+  there. Mounting a sub-app elsewhere is wiring, not a code change.
+- **If it compiles, it works.** The type system is contract enforcement,
+  not documentation. Missing dep, wrong data-form (need locked, got
+  readonly), impossible cross-adapter query, wrong ref type — all caught
+  before runtime.
+
 ## The canonical project layout
 
-Look at `examples/simple-app/`. Each domain owns its own folder; infra
-is separate; app composes them.
+Look at `examples/order-fulfillment/`. Each domain owns its own folder;
+infra is separate; app composes them.
 
 ```
 src/
@@ -177,9 +214,9 @@ Conventions:
 
 When generating framework code, prefer the dedicated skills:
 
-- `/new-process` — durable process with the rules baked in.
-- `/audit-domain-purity` — static check before commit.
-- `/multi-instance-test` — distributed e2e test scaffold (real
+- `/justscale-new-process` — durable process with the rules baked in.
+- `/justscale-audit-domain-purity` — static check before commit.
+- `/justscale-multi-instance-test` — distributed e2e test scaffold (real
   `child_process.spawn` workers, not two builders in one process).
 
 ## When to load

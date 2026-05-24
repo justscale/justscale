@@ -1,10 +1,10 @@
 ---
-name: audit-domain-purity
+name: justscale-audit-domain-purity
 description: Static audit for JustScale domain-purity violations — `id`/`createdAt`/`updatedAt` fields in `defineModel`, infra package imports from `domain/`, `findById('...')` patterns, repository mutators called without `Locked<T>`, and hand-painted span-coloured code in docs. Run before commits or during code review. Reports violations with file:line; does NOT auto-fix.
 allowed-tools: Bash, Read, Grep
 ---
 
-# Skill: audit-domain-purity
+# Skill: justscale-audit-domain-purity
 
 Run a static audit against `$ARGUMENTS` (default: `.`) for JustScale's
 domain-purity rules. This is the rule book made executable.

@@ -117,6 +117,12 @@ sync_pkg packages/adapters/postgres
 sync_pkg packages/feature/auth
 sync_pkg packages/misc/install
 
+# --- examples (public-facing showcase apps) ---
+# Only examples that depend solely on the shipped package set
+# (core/typescript/testing/http/postgres) belong here. .justscale is a
+# dev-time process cache, never shipped.
+sync_pkg examples/order-fulfillment .justscale
+
 echo
 echo "swap   plugins/index.ts <- plugins/index.public.ts"
 cp "$RELEASE_ROOT/packages/core/typescript/src/plugins/index.public.ts" \

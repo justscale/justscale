@@ -1,0 +1,22 @@
+{
+  "name": "@justscale-examples/order-fulfillment",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=30000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "node ../../packages/core/typescript/dist/compiler/ptsc.js --noEmit"
+  },
+  "dependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/postgres": "workspace:*"
+  },
+  "devDependencies": {
+    "@justscale/testing": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "@types/node": "^25.6.0",
+    "postgres": "^3.4.9",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
