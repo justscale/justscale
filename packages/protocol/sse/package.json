@@ -33,13 +33,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "ptsc -b tsconfig.build.json"
+    "build": "ptsc -b tsconfig.build.json",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
   },
   "dependencies": {
     "@justscale/core": "workspace:*",
     "@justscale/http": "workspace:*"
   },
   "devDependencies": {
-    "@justscale/typescript": "workspace:*"
+    "@justscale/typescript": "workspace:*",
+    "tsx": "^4.21.0"
   }
 }

@@ -81,7 +81,7 @@ jobs:
           PGPORT: '5432'
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            pnpm test:changed -- --changed=origin/${{ github.base_ref }}
+            pnpm turbo run test --concurrency=1 --filter='...[origin/${{ github.base_ref }}]'
           else
             pnpm test
           fi
