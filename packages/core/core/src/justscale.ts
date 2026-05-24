@@ -41,6 +41,7 @@ import { FeatureFlag } from './features/feature-flags/feature-flag-of.js';
 import { isEnvironment, type Environment } from './features/environment/types.js';
 import { VAULT_KIND, type VaultKind } from './features/vault/types.js';
 import type { ServiceDef } from './core/service.js';
+import { getFeatureMetadata } from './builder/feature-builder.js';
 import {
   getContributionDefault,
   getContributionParent,
@@ -478,6 +479,8 @@ class BuiltApp<
   private _kernel: Kernel | null = null;
   private lifecycle: LifecycleImpl | null = null;
   private _parentBuildContext: import('./builder/build-context.js').BuildContext | null = null;
+  private featureStartHooksStarted = false;
+  private featureStopHooksStopped = false;
 
   constructor(private state: BuilderState) {}
 
@@ -570,6 +573,11 @@ class BuiltApp<
       _parentBuildContext: this._parentBuildContext ?? undefined,
     }) as App<ExtractControllers<TProvided>>;
 
+    const appForHooks = this._app;
+    (this._app as { ready: Promise<void> }).ready = appForHooks.ready.then(async () => {
+      await this.runFeatureStartHooks(appForHooks.container);
+    });
+
     if (this.state.subApps.length > 0) {
       const parentReady = this._app.ready;
       const parentApp = this._app;
@@ -589,6 +597,30 @@ class BuiltApp<
     }
 
     return this._app;
+  }
+
+  private async runFeatureStartHooks(container: Container): Promise<void> {
+    if (this.featureStartHooksStarted) return;
+    this.featureStartHooksStarted = true;
+
+    for (const feature of this.state.features) {
+      const hook = getFeatureMetadata(feature)?.onStart;
+      if (!hook) continue;
+      await hook({
+        resolve: <T>(token: ServiceToken<T>) => container.resolve(token as any) as Promise<T>,
+      });
+    }
+  }
+
+  private async runFeatureStopHooks(): Promise<void> {
+    if (this.featureStopHooksStopped) return;
+    this.featureStopHooksStopped = true;
+
+    for (const feature of [...this.state.features].reverse()) {
+      const hook = getFeatureMetadata(feature)?.onStop;
+      if (!hook) continue;
+      await hook();
+    }
   }
 
   compile(): CompileResult<TRequires, App<ExtractControllers<TProvided>>> {
@@ -690,6 +722,7 @@ class BuiltApp<
     } else if (this.lifecycle) {
       await this.lifecycle.runHook('stop');
     }
+    await this.runFeatureStopHooks();
 
     for (const transport of getRegisteredTransports()) {
       if (transport.onStop) {

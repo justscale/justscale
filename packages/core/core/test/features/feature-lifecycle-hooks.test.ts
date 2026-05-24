@@ -10,19 +10,11 @@
  *
  *   1. Metadata stores hooks correctly — this part works.
  *
- *   2. BUG: the hooks are NEVER executed. No code in the framework
- *      reads `meta.onStart` / `meta.onStop`. A feature that depends
- *      on `.onStart()` to (say) open a DB connection silently doesn't
- *      open it. The doc comments advertise a feature that doesn't exist.
+ *   2. Lifecycle hooks execute when the app becomes ready and when it stops.
  *
  * The invariants worth pinning:
  *   - `getFeatureMetadata(feat).onStart` returns the exact hook.
- *   - Running the app end-to-end does NOT invoke the hook (today).
- *
- * todo: either wire onStart/onStop into the lifecycle at compile time
- *   (call them from `compileInternal` after services resolve; call
- *   onStop from the kernel stop path) OR delete the API so users
- *   aren't silently led astray.
+ *   - Running the app end-to-end invokes the hook once.
  */
 
 import { describe, it } from 'node:test';
@@ -75,49 +67,35 @@ describe('feature lifecycle hooks', () => {
     assert.strictEqual(called, 0);
   });
 
-  it('todo: onStart is NOT called during compile/build/resolve (hook never runs)', async () => {
-    // BUG: no code in the framework invokes `meta.onStart`. A feature
-    // author writing `.onStart(async ({ resolve }) => { await db.connect() })`
-    // gets silent no-op. The docstring advertises this as working.
-    //
-    // Rigorous trace through the codebase (as of the test commit):
-    //   - feature-builder stashes onStart on FeatureMetadata.
-    //   - justscale.ts processComponent stores the feature in state.features.
-    //   - validateDependencies only reads `meta.requires`, not `onStart`.
-    //   - compileInternal never looks at features either.
-    //
-    // todo: the symmetrical path for onStop is also missing. The
-    //   BuiltApp.serve path calls `transport.onStart/onStop`, but those
-    //   are transport hooks (different API), not feature hooks.
+  it('onStart is called once when the app is ready and can resolve services', async () => {
     let onStartCalled = 0;
+    let resolvedValue = 0;
 
     const Feat = createFeatureBuilder()
       .name('start-hook')
-      .onStart(async () => {
+      .onStart(async ({ resolve }) => {
         onStartCalled++;
+        const a = await resolve(TokenA);
+        resolvedValue = a.v();
       })
       .provides((b) => b.add(TokenA));
 
     const app = JustScale().add(Feat).build().compile();
     await app.ready;
 
-    // Resolve the service the feature provides — still no hook call.
+    // Resolve the service the feature provides — the hook should not run again.
     const a = await app.container.resolve(TokenA);
     assert.ok(a);
 
-    // todo: flip this assertion to `.strictEqual(onStartCalled, 1)`
-    // once hooks are wired.
     assert.strictEqual(
       onStartCalled,
-      0,
-      'today: onStart is never invoked. Pin until wired.',
+      1,
+      'onStart should run exactly once when the app becomes ready.',
     );
+    assert.strictEqual(resolvedValue, 42);
   });
 
-  it('todo: onStop is NOT called during app.stop()', async () => {
-    // BUG: symmetric with onStart. app.stop() (via kernel) runs
-    // lifecycle hooks, transport onStop hooks, and closes sockets —
-    // but never walks feature metadata for `onStop`.
+  it('onStop is called once during app.stop()', async () => {
     let onStopCalled = 0;
 
     const Feat = createFeatureBuilder()
@@ -131,15 +109,12 @@ describe('feature lifecycle hooks', () => {
     const app = built.compile();
     await app.ready;
 
-    // Drive stop. Without calling serve(), we lack a kernel — but
-    // BuiltApp.stop gracefully handles that case (runs lifecycle
-    // stop hook via LifecycleImpl). Feature onStop still not called.
     await built.stop();
 
     assert.strictEqual(
       onStopCalled,
-      0,
-      'today: feature onStop is never invoked. Pin until wired.',
+      1,
+      'feature onStop should run during app.stop().',
     );
   });
 
