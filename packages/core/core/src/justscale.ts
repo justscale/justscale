@@ -607,7 +607,7 @@ class BuiltApp<
       const hook = getFeatureMetadata(feature)?.onStart;
       if (!hook) continue;
       await hook({
-        resolve: <T>(token: Token<T>) => container.resolve(token as any) as Promise<T>,
+        resolve: <T>(token: ServiceToken<T>) => container.resolve(token as any) as Promise<T>,
       });
     }
   }
