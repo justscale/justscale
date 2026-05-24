@@ -62,8 +62,8 @@ below.
   `Locked<T>`. The only way to obtain one is
   `using x = await repo.lock(ref)` — atomic with the read.
 - **Transport-agnostic controllers** — the same route definition is
-  served by HTTP and CLI today; WebSocket, SSE, and gRPC graduate from
-  `next` as those packages settle.
+  served by HTTP, CLI, and Server-Sent Events today; WebSocket and gRPC
+  graduate from `next` as those packages settle.
 - **Durable processes** — `createProcess` workflows written as plain
   async code that survive restarts and route across instances.
 - **Custom TS compiler** (`ptsc`) — process transforms + IDE support.
@@ -83,7 +83,7 @@ and ships JustScale-aware Claude Code skills under `.claude/skills/`.
 ## Packages
 
 This 0.x release ships the tier-1 surface. More packages
-(`websocket`, `sse`, `event`, `redis`, `permission`, ...) graduate
+(`websocket`, `event`, `redis`, `permission`, ...) graduate
 out of `next` as their APIs settle.
 
 | Package | Description |
@@ -92,6 +92,7 @@ out of `next` as their APIs settle.
 | `@justscale/typescript` | Custom TypeScript compiler (`ptsc`), tsserver, register hook |
 | `@justscale/testing` | `createTestKit` harness, mocks, in-memory adapters |
 | `@justscale/http` | HTTP route factories, body limits, CORS, OpenAPI hooks |
+| `@justscale/sse` | Server-Sent Events route factory + streaming handlers |
 | `@justscale/postgres` | Repositories, migrations, advisory locks, LISTEN/NOTIFY |
 | `@justscale/auth` | User/Session models, password hashing, auth middleware |
 | `create-justscale` | Project scaffolder (`npx create-justscale my-app`) |
