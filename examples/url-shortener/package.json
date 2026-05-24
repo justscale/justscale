@@ -1,0 +1,23 @@
+{
+  "name": "@justscale-examples/url-shortener",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --import @justscale/typescript/register --import tsx src/main.ts",
+    "typecheck": "node ../../packages/core/typescript/dist/compiler/ptsc.js --noEmit"
+  },
+  "dependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "@justscale/postgres": "workspace:*"
+  },
+  "devDependencies": {
+    "@justscale/typescript": "workspace:*",
+    "@types/node": "^25.6.0",
+    "postgres": "^3.4.9",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.1"
+  }
+}

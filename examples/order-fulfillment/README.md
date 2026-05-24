@@ -1,6 +1,8 @@
 # Order Fulfillment
 
-Write a single-server backend. It just scales a cluster.
+The durable side of JustScale: a long-running workflow written as plain async
+code that survives restarts and resumes across instances. (For the everyday
+HTTP + service shape, start with [`url-shortener`](../url-shortener).)
 
 This example is an order-fulfillment workflow written as if it ran on one
 machine: place an order, then wait for payment or time out. There is no queue
