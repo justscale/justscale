@@ -1,0 +1,45 @@
+{
+  "name": "@justscale/sse",
+  "version": "0.1.2",
+  "description": "Server-Sent Events protocol for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/protocol/sse"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "sse",
+    "server-sent-events",
+    "streaming",
+    "typescript"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json"
+  },
+  "dependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*"
+  },
+  "devDependencies": {
+    "@justscale/typescript": "workspace:*"
+  }
+}
