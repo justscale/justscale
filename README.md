@@ -15,43 +15,51 @@ code scales from one instance to many. Like Go, where blocking code just
 scales, for TypeScript backends.
 
 ```typescript
-export const orderFulfillment = createProcess({
-  path: '/order/:order/fulfillment',
-  types: { order: Order },
-  inject: { signals: OrderSignals, shipping: ShippingService },
+// A model is pure domain data - storage owns the id, your code never sees it.
+export class Link extends defineModel({
+  name: 'Link',
+  fields: { slug: field.string().unique(), target: field.text() },
+}) {}
 
-  async handler({ signals, shipping }, { order }) {
-    const r = race();
-    switch (true) {
-      case signal(r, signals.paymentConfirmed):
-        await shipping.dispatch(r.order, r.txId);
-        return { status: 'shipped' as const };
-      case delay.days(r, 3):
-        return { status: 'payment_timeout' as const };
-    }
-  },
+// A service is plain methods over injected dependencies - no transport, no SQL.
+export class Links extends defineService({
+  inject: { links: ModelRepository.of(Link) },
+  factory: ({ links }) => ({
+    shorten: (slug: string, target: string) => links.insert({ slug, target }),
+    resolve: (slug: string) => links.findOne(Link.fields.slug.eq(slug)),
+  }),
+}) {}
+
+// A controller maps HTTP onto the service - the only place that knows about HTTP.
+export const links = createController('/', {
+  inject: { svc: Links },
+  routes: ({ svc }) => ({
+    go: Get('/:slug').handle(async ({ params, res }) => res.json(await svc.resolve(params.slug))),
+  }),
 });
 ```
 
-This process suspends on `signal()` and `delay()`, persists its state at
-every suspension point, and resumes after a server restart with the same
-variables in scope. The compiler turns it into an opcode-based state
-machine; you never see that.
+That's the whole app: a model, a service, a controller. The type system wires
+the dependencies at compile time and catches mistakes - try to mutate without a
+`Locked<T>` and it won't compile - and the same code runs unchanged from one
+instance to many. Long-running work is just as plain; see durable processes
+below.
 
 ## What's in the box
 
-- **Durable processes** — `createProcess` workflows that survive
-  restarts and route across instances.
+- **Services & DI** — `defineService` with function-based injection (no
+  decorators, no reflect-metadata); missing dependencies fail the build,
+  not the prod node.
 - **ID-free domain** — `Ref<T>` / `Persistent<T>` / `Locked<T>` flow
   through your code; storage owns IDs.
-- **Distributed-safe by construction** — `repo.update` / `save` /
-  `delete` require `Locked<T>`. The only way to obtain one is
+- **Safe mutations** — `repo.update` / `save` / `delete` require
+  `Locked<T>`. The only way to obtain one is
   `using x = await repo.lock(ref)` — atomic with the read.
 - **Transport-agnostic controllers** — the same route definition is
   served by HTTP and CLI today; WebSocket, SSE, and gRPC graduate from
   `next` as those packages settle.
-- **Compile-time DI** — missing dependencies fail the build, not the
-  prod node.
+- **Durable processes** — `createProcess` workflows written as plain
+  async code that survive restarts and route across instances.
 - **Custom TS compiler** (`ptsc`) — process transforms + IDE support.
 
 ## Install
