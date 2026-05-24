@@ -9,10 +9,11 @@ The TypeScript backend framework where plain code just scales.
 [![Node](https://img.shields.io/badge/Node-24%2B-brightgreen)](#requirements)
 
 JustScale is a general-purpose TypeScript backend framework. You write plain,
-straight-line code; the compiler makes long-running workflows durable, the type
-system keeps it correct, and domain code never sees a string ID - and the same
-code scales from one instance to many. Like Go, where blocking code just
-scales, for TypeScript backends.
+straight-line code and it just scales - from one instance to many.
+
+The compiler makes long-running workflows durable, the type system keeps it
+correct, and domain code never sees a string ID. Like Go, where blocking code
+just scales - for TypeScript backends.
 
 ```typescript
 // A model is pure domain data - storage owns the id, your code never sees it.
@@ -25,8 +26,13 @@ export class Link extends defineModel({
 export class Links extends defineService({
   inject: { links: ModelRepository.of(Link) },
   factory: ({ links }) => ({
-    shorten: (slug: string, target: string) => links.insert({ slug, target }),
-    resolve: (slug: string) => links.findOne(Link.fields.slug.eq(slug)),
+    async shorten(slug: string, target: string) {
+      return links.insert({ slug, target });
+    },
+
+    async resolve(slug: string) {
+      return links.findOne(Link.fields.slug.eq(slug));
+    },
   }),
 }) {}
 
