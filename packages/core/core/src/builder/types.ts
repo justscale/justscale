@@ -73,7 +73,7 @@ export interface FeatureMetadata {
 /**
  * Lifecycle hook called when cluster starts.
  */
-export type StartHook = (ctx: { resolve: <T>(token: Token<T>) => T }) => Promise<void> | void;
+export type StartHook = (ctx: { resolve: <T>(token: Token<T>) => Promise<T> }) => Promise<void> | void;
 
 /**
  * Lifecycle hook called when cluster stops.
