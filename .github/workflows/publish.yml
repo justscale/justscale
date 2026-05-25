@@ -97,6 +97,14 @@ jobs:
               pkg_dir=$(dirname "$pkg_json")
               pkg_name=$(jq -r '.name' "$pkg_json")
 
+              # Only publish @justscale/* packages. Unscoped packages like
+              # create-justscale live under a personal npm account and are
+              # released by hand, not from this pipeline.
+              case "$pkg_name" in
+                @justscale/*) ;;
+                *) continue ;;
+              esac
+
               # Check if any file in this package directory changed
               if echo "$CHANGED_FILES" | grep -q "^$pkg_dir/"; then
                 CHANGED_PACKAGES="$CHANGED_PACKAGES $pkg_name"
