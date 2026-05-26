@@ -28,6 +28,12 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
   } = options;
   const generated: string[] = [];
 
+  // `just` is a LOCAL dependency (node_modules/.bin/just), not a global
+  // command — so bare `just dev` only works if node_modules/.bin is on PATH.
+  // Document the form that runs the local bin through the package manager.
+  // (npm has no `npm <bin>` fallback, so use npx there.)
+  const just = system.packageManager === 'npm' ? 'npx just' : `${system.packageManager} just`;
+
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(join(projectDir, 'src'), { recursive: true });
 
@@ -49,6 +55,25 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
       'tsx': '^4.0.0',
     },
   }, null, 2) + '\n', generated);
+
+  // pnpm-workspace.yaml — pre-approve dependency build scripts.
+  //
+  // pnpm gates dependency build scripts by default; without this, `pnpm install`
+  // fails with ERR_PNPM_IGNORED_BUILDS (a non-zero exit). A JustScale project
+  // pulls in two that need building: esbuild (via tsx) and cbor-extract (the
+  // native CBOR accelerator behind @justscale/core's cbor-x). Both keys are
+  // emitted for cross-version support — pnpm 11+ reads `allowBuilds`, pnpm 10
+  // reads `onlyBuiltDependencies`; each ignores the other. (npm/yarn run build
+  // scripts by default, so this file is only written for pnpm.)
+  if (system.packageManager === 'pnpm') {
+    writeFile(projectDir, 'pnpm-workspace.yaml', `allowBuilds:
+  esbuild: true
+  cbor-extract: true
+onlyBuiltDependencies:
+  - esbuild
+  - cbor-extract
+`, generated);
+  }
 
   // tsconfig.json
   writeFile(projectDir, 'tsconfig.json', JSON.stringify({
@@ -125,7 +150,7 @@ dist/
 
   // AI config
   if (system.aiTools.includes('claude')) {
-    generateClaudeConfig(projectDir, projectName, generated);
+    generateClaudeConfig(projectDir, projectName, just, system.packageManager, generated);
   }
 
   // CI/CD
@@ -215,7 +240,7 @@ function generateVSCodeConfig(projectDir: string, generated: string[]): void {
   }, null, 2) + '\n', generated);
 }
 
-function generateClaudeConfig(projectDir: string, projectName: string, generated: string[]): void {
+function generateClaudeConfig(projectDir: string, projectName: string, just: string, pm: string, generated: string[]): void {
   writeFile(projectDir, '.claude/settings.json', JSON.stringify({
     mcpServers: {
       justscale: {
@@ -228,6 +253,10 @@ function generateClaudeConfig(projectDir: string, projectName: string, generated
   writeFile(projectDir, 'CLAUDE.md', `# ${projectName}
 
 ## Commands
+
+The \`just\` CLI ships with \`@justscale/core\`. For a bare \`just\` command (like
+\`tsc\`) install it globally once — \`npm i -g @justscale/core\` — or run it
+project-local as \`${just} <cmd>\` (\`${pm} run build\` / \`dev\` / \`test\` also work).
 
 \`\`\`bash
 just build              # Build the project

@@ -131,12 +131,21 @@ async function run(): Promise<void> {
   }
 
   const relPath = projectDir === cwd ? '.' : projectName;
+  // For a bare `just` command (like `tsc`), the CLI must be on PATH — i.e. a
+  // global install. Without one it's a local binary, run through the package
+  // manager (npm has no `npm <bin>` fallback, hence npx).
+  const pm = system.packageManager;
+  const localJust = pm === 'npm' ? 'npx just' : `${pm} just`;
   console.log('\n  Done! Next steps:\n');
   if (relPath !== '.') {
     console.log(`    cd ${relPath}`);
   }
-  console.log('    just dev              # Start development server');
+  console.log('    just dev              # Start the dev server');
   console.log('    just install <pkg>    # Add a plugin');
+  console.log('');
+  console.log('  For a bare `just` command (like tsc), install the CLI globally once:');
+  console.log('    npm i -g @justscale/core');
+  console.log(`  Or run it project-local: \`${localJust} dev\`  (\`${pm} run dev\` works too).`);
   console.log('');
 
   if (system.ides.includes('jetbrains')) {
