@@ -92,6 +92,29 @@ export function findWorkspaceRoot(startDir?: string): string {
 }
 
 /**
+ * Is `dir` a real monorepo root that turbo should orchestrate? Two signals:
+ *   - a `turbo.json` (turbo is explicitly configured), or
+ *   - a `pnpm-workspace.yaml` that actually declares `packages:`.
+ *
+ * A `pnpm-workspace.yaml` carrying only settings (e.g. `allowBuilds` /
+ * `onlyBuiltDependencies` to pre-approve pnpm build scripts) is NOT a
+ * monorepo — a single app can have one. Keying off mere file existence
+ * mis-routed `just build`/`just test` in scaffolded apps to turbo, which
+ * then failed with "missing field `packages`" / found no tests.
+ */
+export function isMonorepoRoot(dir: string): boolean {
+  if (existsSync(join(dir, 'turbo.json'))) return true;
+  const ws = join(dir, 'pnpm-workspace.yaml');
+  if (!existsSync(ws)) return false;
+  try {
+    // `packages:` is a top-level key in a real workspace file.
+    return /^packages\s*:/m.test(readFileSync(ws, 'utf8'));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Execute a command and stream output.
  *
  * Prepends local `node_modules/.bin` to PATH so commands like `tsx`,
@@ -639,8 +662,7 @@ export const WorkspaceController = createController({
         const env = ctx.args.env ?? process.env.JUSTSCALE_ENV ?? undefined;
         const cwd = process.cwd();
         const workspaceRoot = findWorkspaceRoot();
-        const isWorkspace = existsSync(join(workspaceRoot, 'pnpm-workspace.yaml')) ||
-          existsSync(join(workspaceRoot, 'turbo.json'));
+        const isWorkspace = isMonorepoRoot(workspaceRoot);
         const childEnv = envWithJustscaleEnv(env);
 
         // App mode: `--env <name>` + a justscale.config.ts in cwd means
@@ -764,7 +786,10 @@ export const WorkspaceController = createController({
 
         const cwd = process.cwd();
         const root = findWorkspaceRoot(cwd);
-        const isAtRoot = cwd === root && existsSync(join(root, 'pnpm-workspace.yaml'));
+        // Only a real monorepo root sweeps tests across workspace packages; a
+        // settings-only pnpm-workspace.yaml (no `packages:`) is a single app
+        // and gets single-package discovery.
+        const isAtRoot = cwd === root && isMonorepoRoot(root);
 
         // Default to the 'test' env so configs/adapters with environment-
         // gated behavior (pglite, in-memory channels, …) pick the test
