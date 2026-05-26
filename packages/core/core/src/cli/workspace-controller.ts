@@ -92,6 +92,51 @@ export function findWorkspaceRoot(startDir?: string): string {
 }
 
 /**
+ * Is `dir` a real monorepo root that turbo should orchestrate? Two signals:
+ *   - a `turbo.json` (turbo is explicitly configured), or
+ *   - a `pnpm-workspace.yaml` that actually declares `packages:`.
+ *
+ * A `pnpm-workspace.yaml` carrying only settings (e.g. `allowBuilds` /
+ * `onlyBuiltDependencies` to pre-approve pnpm build scripts) is NOT a
+ * monorepo — a single app can have one. Keying off mere file existence
+ * mis-routed `just build`/`just test` in scaffolded apps to turbo, which
+ * then failed with "missing field `packages`" / found no tests.
+ */
+export function isMonorepoRoot(dir: string): boolean {
+  if (existsSync(join(dir, 'turbo.json'))) return true;
+  const ws = join(dir, 'pnpm-workspace.yaml');
+  if (!existsSync(ws)) return false;
+  try {
+    // `packages:` is a top-level key in a real workspace file.
+    return /^packages\s*:/m.test(readFileSync(ws, 'utf8'));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The package manager THIS project uses — `packageManager` field first
+ * (corepack-authoritative), then a lockfile, then whatever's globally
+ * installed. detectSystem()/detectPackageManager() answers "what's on this
+ * machine" (which('pnpm')), which is wrong for running a project's scripts:
+ * on a pnpm box it would run `pnpm` inside an npm project, and pnpm then
+ * refuses with "This project is configured to use npm".
+ */
+export function projectPackageManager(dir: string): 'pnpm' | 'yarn' | 'npm' {
+  try {
+    const pj = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf-8'));
+    const field = typeof pj.packageManager === 'string' ? pj.packageManager.split('@')[0] : '';
+    if (field === 'pnpm' || field === 'yarn' || field === 'npm') return field;
+  } catch {
+    /* no/invalid package.json — fall through */
+  }
+  if (existsSync(join(dir, 'pnpm-lock.yaml'))) return 'pnpm';
+  if (existsSync(join(dir, 'yarn.lock'))) return 'yarn';
+  if (existsSync(join(dir, 'package-lock.json'))) return 'npm';
+  return detectSystem(dir).packageManager;
+}
+
+/**
  * Execute a command and stream output.
  *
  * Prepends local `node_modules/.bin` to PATH so commands like `tsx`,
@@ -639,8 +684,7 @@ export const WorkspaceController = createController({
         const env = ctx.args.env ?? process.env.JUSTSCALE_ENV ?? undefined;
         const cwd = process.cwd();
         const workspaceRoot = findWorkspaceRoot();
-        const isWorkspace = existsSync(join(workspaceRoot, 'pnpm-workspace.yaml')) ||
-          existsSync(join(workspaceRoot, 'turbo.json'));
+        const isWorkspace = isMonorepoRoot(workspaceRoot);
         const childEnv = envWithJustscaleEnv(env);
 
         // App mode: `--env <name>` + a justscale.config.ts in cwd means
@@ -764,7 +808,10 @@ export const WorkspaceController = createController({
 
         const cwd = process.cwd();
         const root = findWorkspaceRoot(cwd);
-        const isAtRoot = cwd === root && existsSync(join(root, 'pnpm-workspace.yaml'));
+        // Only a real monorepo root sweeps tests across workspace packages; a
+        // settings-only pnpm-workspace.yaml (no `packages:`) is a single app
+        // and gets single-package discovery.
+        const isAtRoot = cwd === root && isMonorepoRoot(root);
 
         // Default to the 'test' env so configs/adapters with environment-
         // gated behavior (pglite, in-memory channels, …) pick the test
@@ -776,12 +823,23 @@ export const WorkspaceController = createController({
         // inside e.g. examples/simple-app doesn't drag in the whole
         // monorepo's typecheck cost.
         if (!skipTypecheck) {
-          ctx.io.log('Running typecheck...');
           const typecheckCwd = isAtRoot ? root : cwd;
-          const code = await exec('pnpm', ['typecheck'], { cwd: typecheckCwd, verbose });
-          if (code !== 0) {
-            ctx.io.error('Typecheck failed');
-            process.exit(code);
+          // Run through the project's OWN package manager — hardcoding `pnpm`
+          // breaks npm/yarn projects, which (with a `packageManager` field)
+          // make pnpm refuse with "This project is configured to use npm".
+          const tcPkgPath = join(typecheckCwd, 'package.json');
+          const hasTypecheck = existsSync(tcPkgPath)
+            && !!JSON.parse(readFileSync(tcPkgPath, 'utf-8')).scripts?.typecheck;
+          if (hasTypecheck) {
+            ctx.io.log('Running typecheck...');
+            const pm = projectPackageManager(typecheckCwd);
+            const code = await exec(pm, ['run', 'typecheck'], { cwd: typecheckCwd, verbose });
+            if (code !== 0) {
+              ctx.io.error('Typecheck failed');
+              process.exit(code);
+            }
+          } else if (verbose) {
+            ctx.io.log('No `typecheck` script — skipping typecheck.');
           }
         }
 
@@ -903,10 +961,9 @@ export const WorkspaceController = createController({
         ctx.io.log(`Installing ${pkgName}...`);
 
         // Install via detected package manager
-        const pm = detectSystem(root).packageManager;
-        const pmCmd = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm';
+        const pm = projectPackageManager(root);
         const pmArgs = pm === 'npm' ? ['install', pkgName] : ['add', pkgName];
-        const installCode = await exec(pmCmd, pmArgs, { cwd: root });
+        const installCode = await exec(pm, pmArgs, { cwd: root });
 
         if (installCode !== 0) {
           ctx.io.error(`Failed to install ${pkgName}`);
