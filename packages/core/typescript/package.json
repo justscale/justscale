@@ -1,6 +1,6 @@
 {
   "name": "@justscale/typescript",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Drop-in TypeScript replacement with JustScale process compilation - ptsc compiler, tsserver, LSP plugin, programmatic API",
   "author": "JustScale",
   "license": "MIT",
