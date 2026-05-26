@@ -42,29 +42,35 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
   mkdirSync(join(projectDir, 'src'), { recursive: true });
 
   // package.json
-  writeFile(projectDir, 'package.json', JSON.stringify({
+  const pkg: Record<string, unknown> = {
     name: projectName,
     version: '0.1.0',
     type: 'module',
-    scripts: {
-      build: 'just build',
-      test: 'just test',
-      dev: 'just dev',
-    },
-    dependencies: {
-      '@justscale/core': coreVersion,
-      '@justscale/http': httpVersion,
-    },
-    devDependencies: {
-      // @justscale/hmr is dev-only — `just dev` spawns the app with
-      // `--import @justscale/hmr/register`, so it must be installed or
-      // dev mode fails with ERR_MODULE_NOT_FOUND. It is dynamic-imported
-      // by the kernel only when NODE_ENV=development, never in production.
-      '@justscale/hmr': hmrVersion,
-      '@justscale/typescript': typescriptVersion,
-      'tsx': '^4.0.0',
-    },
-  }, null, 2) + '\n', generated);
+  };
+  // Pin the package manager. corepack reads this; without it pnpm errors with
+  // "Missing `packageManager` field". Uses the version detected on this machine.
+  if (system.packageManagerVersion) {
+    pkg.packageManager = `${system.packageManager}@${system.packageManagerVersion}`;
+  }
+  pkg.scripts = {
+    build: 'just build',
+    test: 'just test',
+    dev: 'just dev',
+  };
+  pkg.dependencies = {
+    '@justscale/core': coreVersion,
+    '@justscale/http': httpVersion,
+  };
+  // @justscale/hmr is dev-only — `just dev` spawns the app with
+  // `--import @justscale/hmr/register`, so it must be installed or dev mode
+  // fails with ERR_MODULE_NOT_FOUND. The kernel dynamic-imports it only when
+  // NODE_ENV=development, never in production.
+  pkg.devDependencies = {
+    '@justscale/hmr': hmrVersion,
+    '@justscale/typescript': typescriptVersion,
+    'tsx': '^4.0.0',
+  };
+  writeFile(projectDir, 'package.json', JSON.stringify(pkg, null, 2) + '\n', generated);
 
   // pnpm-workspace.yaml — pre-approve dependency build scripts.
   //
@@ -179,8 +185,21 @@ export default createEnvironment<AppEnv>({
   writeFile(projectDir, '.gitignore', `node_modules/
 dist/
 .justscale/
+.direnv/
 *.tsbuildinfo
 `, generated);
+
+  // .envrc — only when direnv is installed. Puts the project's local bins
+  // (just, tsc, eslint, ...) on PATH whenever you cd in, so they work bare in
+  // any shell — the same thing IDE terminals do automatically. Needs a one-off
+  // `direnv allow`. Skipped when direnv isn't present so non-users don't get a
+  // confusing inert file.
+  if (system.hasDirenv) {
+    writeFile(projectDir, '.envrc', `# Put the project's local binaries (just, tsc, ...) on PATH so they work
+# bare in this directory. Run \`direnv allow\` once to enable.
+PATH_add node_modules/.bin
+`, generated);
+  }
 
   // IDE config
   if (system.ides.includes('jetbrains')) {
