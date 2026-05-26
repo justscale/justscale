@@ -53,9 +53,12 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
     pkg.packageManager = `${system.packageManager}@${system.packageManagerVersion}`;
   }
   pkg.scripts = {
+    dev: 'just dev',
     build: 'just build',
     test: 'just test',
-    dev: 'just dev',
+    // `just test` runs `<pm> typecheck` first, so this must exist. ptsc is the
+    // JustScale TS compiler shipped by @justscale/typescript.
+    typecheck: 'ptsc --noEmit',
   };
   pkg.dependencies = {
     '@justscale/core': coreVersion,
@@ -68,6 +71,9 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
   pkg.devDependencies = {
     '@justscale/hmr': hmrVersion,
     '@justscale/typescript': typescriptVersion,
+    // node globals (process) + node:test/node:assert types used by env files
+    // and the sample test — required for `just test`'s typecheck step.
+    '@types/node': '^25.0.0',
     'tsx': '^4.0.0',
   };
   writeFile(projectDir, 'package.json', JSON.stringify(pkg, null, 2) + '\n', generated);
@@ -103,6 +109,7 @@ onlyBuiltDependencies:
       strict: true,
       esModuleInterop: true,
       skipLibCheck: true,
+      types: ['node'],
     },
     include: ['src'],
   }, null, 2) + '\n', generated);
@@ -120,19 +127,24 @@ export default defineProject({
 })
 `, generated);
 
-  // src/app.ts — the app entry. defineApp() makes it both runnable
-  // (\`just dev\` and \`node dist/app.js\` boot + serve it) and importable
-  // (the CLI and tests call the exported factory).
-  writeFile(projectDir, 'src/app.ts', `import JustScale, { createController, defineApp, defineService } from '@justscale/core'
-import { Get } from '@justscale/http'
+  // src/greeting.service.ts — a service holds your domain logic, storage-
+  // agnostic and injectable. Exported so it can be unit-tested directly.
+  writeFile(projectDir, 'src/greeting.service.ts', `import { defineService } from '@justscale/core'
 
-// A service holds your domain logic — storage-agnostic and injectable.
-class GreetingService extends defineService({
+export class GreetingService extends defineService({
   inject: {},
   factory: () => ({
     greet: (name: string) => \`Hello, \${name}!\`,
   }),
 }) {}
+`, generated);
+
+  // src/app.ts — the app entry. defineApp() makes it both runnable
+  // (\`just dev\` and \`node dist/app.js\` boot + serve it) and importable
+  // (the CLI and tests call the exported factory).
+  writeFile(projectDir, 'src/app.ts', `import JustScale, { createController, defineApp } from '@justscale/core'
+import { Get } from '@justscale/http'
+import { GreetingService } from './greeting.service.js'
 
 // A controller exposes services over a transport (here, HTTP).
 const ApiController = createController({
@@ -152,6 +164,21 @@ export default defineApp(import.meta, (env) =>
     .add(GreetingService)
     .add(ApiController),
 )
+`, generated);
+
+  // test/greeting.test.ts — a starter test. A service's logic is reachable via
+  // its static .factory(deps, resolve), so unit tests need no app boot. For
+  // HTTP / integration tests, reach for @justscale/testing's createTestKit.
+  writeFile(projectDir, 'test/greeting.test.ts', `import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { GreetingService } from '../src/greeting.service.js'
+
+test('GreetingService greets by name', () => {
+  const greeting = GreetingService.factory({}, () => {
+    throw new Error('no dependencies to resolve in this unit test')
+  })
+  assert.equal(greeting.greet('JustScale'), 'Hello, JustScale!')
+})
 `, generated);
 
   // env/<name>.ts — per-environment providers. \`just dev\` loads
@@ -180,6 +207,43 @@ export default createEnvironment<AppEnv>({
   writeFile(projectDir, 'env/development.ts', envFile('development', 'development', '3000'), generated);
   writeFile(projectDir, 'env/test.ts', envFile('test', 'test', '0'), generated);
   writeFile(projectDir, 'env/production.ts', envFile('production', 'production', '8080'), generated);
+
+  // README.md — human-facing quickstart (CLAUDE.md, if generated, is for agents).
+  writeFile(projectDir, 'README.md', `# ${projectName}
+
+A [JustScale](https://justscale.sh) app.
+
+## Develop
+
+\`\`\`bash
+just dev        # dev server with hot reload  ->  http://localhost:3000
+\`\`\`
+
+\`GET /\` returns \`{ "message": "Hello, JustScale!" }\`.
+
+> \`just\` is a local binary. IDE terminals (VS Code, JetBrains) put it on PATH
+> automatically. In a plain shell, run it via \`${just} dev\` (or
+> \`${system.packageManager} run dev\`), or install it globally:
+> \`npm i -g @justscale/core\`.
+
+## Build & test
+
+\`\`\`bash
+just build                   # type-check + compile to dist/
+just build --env production  # bundle a deployable artifact (dist/app-production.js)
+just test                    # run test/**/*.test.ts and src/**/*.test.ts
+\`\`\`
+
+## Layout
+
+\`\`\`
+src/app.ts               app entry (defineApp): controllers + composition
+src/greeting.service.ts  a service (domain logic)
+env/<name>.ts            per-environment config (HTTP port, db, secrets, ...)
+test/                    tests
+justscale.config.ts      project config (app entry, build options)
+\`\`\`
+`, generated);
 
   // .gitignore
   writeFile(projectDir, '.gitignore', `node_modules/
