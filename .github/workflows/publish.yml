@@ -194,8 +194,12 @@ jobs:
             # Find package directory
             pkg_json=$(pnpm ls -r --depth -1 --json | jq -r ".[] | select(.name == \"$pkg\") | .path")/package.json
 
-            # Get current version
-            current_version=$(jq -r '.version' "$pkg_json")
+            # Get current version from npm — the source of truth for what's
+            # published. CI doesn't commit the bumped package.json back (main
+            # requires signed commits), so reading the repo's version would
+            # re-bump from a stale number and try to republish an existing
+            # version. Fall back to package.json for a package's first publish.
+            current_version=$(npm view "$pkg" version 2>/dev/null || jq -r '.version' "$pkg_json")
 
             # Calculate new version
             IFS='.' read -r major minor patch <<< "$current_version"
@@ -245,14 +249,37 @@ jobs:
           done
           pnpm $FILTER publish --provenance --access public --no-git-checks
 
-      - name: Release summary
-        # We don't auto-commit or auto-tag from CI — branch protection
-        # requires signed commits and the github-actions[bot] can't sign.
-        # After a successful publish, locally bump package.json and tag:
-        #   git pull && pnpm -r exec npm version <bump> --no-git-tag-version
-        #   git commit -am "release: v<version>" && git tag -s v<version>
-        #   git push && git push --tags
+      - name: Tag the release + summary
+        # We don't commit the version bumps back to the repo: main requires
+        # signed commits and the runner can't sign with a maintainer key. The
+        # `Bump versions` step reads versions from npm (not the repo), so the
+        # repo staying out of sync doesn't break the next release.
+        #
+        # Tags are NOT subject to the signed-commit rule, so we push one here as
+        # the next release's diff base. Convention: track @justscale/sse's
+        # version (v0.1.2, v0.1.3, …). Best-effort — the npm publish already
+        # succeeded above; a tag hiccup just makes the next run diff from the
+        # previous tag (still correct, just broader) and is fixable with
+        # `git tag vX.Y.Z && git push origin vX.Y.Z`.
+        continue-on-error: true
         run: |
           PACKAGES="${{ steps.dependents.outputs.packages }}"
           echo "Published v${{ steps.version.outputs.version }}:"
           echo "$PACKAGES" | tr ' ' '\n' | sed 's/^/  - /'
+
+          # Tag tracks @justscale/sse's (just-bumped) version; fall back to the
+          # first published package when sse isn't part of this release.
+          if echo "$PACKAGES" | grep -qw "@justscale/sse"; then
+            TAG_V=$(jq -r '.version' packages/protocol/sse/package.json)
+          else
+            TAG_V=${{ steps.version.outputs.version }}
+          fi
+          TAG="v$TAG_V"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists — skipping."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "Tagged $TAG"
+          fi
