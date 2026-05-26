@@ -1,0 +1,14 @@
+{
+  "name": "@justscale-hmr-test/basic-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/hmr": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "tsx": "^4.21.0",
+    "zod": "^4.4.1"
+  }
+}

@@ -200,6 +200,40 @@ importers:
         specifier: ^4.4.1
         version: 4.4.3
 
+  packages/feature/hmr:
+    dependencies:
+      '@justscale/core':
+        specifier: workspace:*
+        version: link:../../core/core
+      '@justscale/typescript':
+        specifier: workspace:*
+        version: link:../../core/typescript
+    devDependencies:
+      tsx:
+        specifier: ^4.21.0
+        version: 4.22.3
+
+  packages/feature/hmr/test/fixtures/basic-app:
+    dependencies:
+      '@justscale/core':
+        specifier: workspace:*
+        version: link:../../../../../core/core
+      '@justscale/hmr':
+        specifier: workspace:*
+        version: link:../../..
+      '@justscale/http':
+        specifier: workspace:*
+        version: link:../../../../../protocol/http
+      '@justscale/typescript':
+        specifier: workspace:*
+        version: link:../../../../../core/typescript
+      tsx:
+        specifier: ^4.21.0
+        version: 4.22.3
+      zod:
+        specifier: ^4.4.1
+        version: 4.4.3
+
   packages/misc/install:
     devDependencies:
       '@justscale/typescript':
