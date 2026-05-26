@@ -79,9 +79,11 @@ describe('scaffoldProject — symlink refusal', () => {
               arch: 'x64',
               nodeVersion: 'v24.0.0',
               packageManager: 'pnpm',
+              packageManagerVersion: '0.0.0',
               ides: [],
               aiTools: [],
               gitHosting: null,
+              hasDirenv: false,
             },
           }),
         /Refusing to overwrite symlink/,
@@ -106,9 +108,11 @@ describe('scaffoldProject — symlink refusal', () => {
           arch: 'x64',
           nodeVersion: 'v24.0.0',
           packageManager: 'pnpm',
+          packageManagerVersion: '0.0.0',
           ides: [],
           aiTools: [],
           gitHosting: null,
+          hasDirenv: false,
         },
       });
       assert.ok(generated.length > 0, 'should generate files');

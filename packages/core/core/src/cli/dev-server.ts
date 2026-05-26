@@ -14,6 +14,7 @@
 
 import { type ChildProcess, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { loadEnvironment } from '../features/environment/load.js';
 import { discover } from './discovery.js';
@@ -35,6 +36,30 @@ function findBinDirs(start: string): string[] {
 interface DevServerOptions {
   root: string
   log: (msg: string) => void
+}
+
+/**
+ * Is `@justscale/hmr/register` resolvable from the project? `just dev` enables
+ * hot reload by adding it to the child's `--import` chain. It is an OPTIONAL,
+ * dev-only peer: @justscale/core deliberately does NOT depend on it (the core
+ * stays dependency-free). So we probe for it at runtime rather than assuming
+ * it's there — and if it's missing, tell the user how to add it instead of
+ * letting Node die with a raw ERR_MODULE_NOT_FOUND.
+ */
+function hmrInstalled(root: string): boolean {
+  try {
+    createRequire(join(root, 'package.json')).resolve('@justscale/hmr/register');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Best-effort install command matching the project's package manager. */
+function hmrInstallHint(root: string): string {
+  if (existsSync(join(root, 'pnpm-lock.yaml'))) return 'pnpm add -D @justscale/hmr';
+  if (existsSync(join(root, 'yarn.lock'))) return 'yarn add -D @justscale/hmr';
+  return 'npm install -D @justscale/hmr';
 }
 
 /**
@@ -90,6 +115,18 @@ export async function startDevServer(options: DevServerOptions): Promise<void> {
     log(
       '[dev] No app entry found. Expected a justscale.config.ts with an `app` entry, ' +
       'or one of src/app.ts, src/main.ts, src/server.ts, src/serve.ts.',
+    );
+    process.exit(1);
+  }
+
+  // Hot reload is the whole point of `just dev`, and it rides on
+  // `@justscale/hmr`. Since the core can't depend on it, make sure the project
+  // does — otherwise the spawn below fails with a cryptic ERR_MODULE_NOT_FOUND.
+  if (!hmrInstalled(root)) {
+    log(
+      '[dev] Hot reload needs @justscale/hmr, but it is not installed.\n' +
+      `      Add it (dev dependency):  ${hmrInstallHint(root)}\n` +
+      '      then re-run `just dev`.',
     );
     process.exit(1);
   }

@@ -7,9 +7,13 @@ export interface SystemInfo {
   arch: string
   nodeVersion: string
   packageManager: 'pnpm' | 'yarn' | 'npm'
+  /** Resolved version of `packageManager` (e.g. "10.6.3"); '' if undetectable. */
+  packageManagerVersion: string
   ides: ('jetbrains' | 'vscode' | 'cursor')[]
   aiTools: ('claude' | 'cursor')[]
   gitHosting: 'github' | 'gitlab' | null
+  /** direnv on PATH — lets us drop a .envrc so local bins (just, tsc) work bare. */
+  hasDirenv: boolean
 }
 
 function which(bin: string): boolean {
@@ -19,6 +23,15 @@ function which(bin: string): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Capture trimmed stdout of a command, or '' if it fails. */
+function cmdOut(cmd: string): string {
+  try {
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
   }
 }
 
@@ -66,8 +79,10 @@ export function detectSystem(projectRoot: string): SystemInfo {
     arch: process.arch,
     nodeVersion: process.version,
     packageManager,
+    packageManagerVersion: cmdOut(`${packageManager} --version`),
     ides,
     aiTools,
     gitHosting,
+    hasDirenv: which('direnv'),
   };
 }

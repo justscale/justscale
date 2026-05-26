@@ -16,6 +16,8 @@ export interface ScaffoldOptions {
   system: SystemInfo
   coreVersion?: string
   typescriptVersion?: string
+  hmrVersion?: string
+  httpVersion?: string
 }
 
 export function scaffoldProject(options: ScaffoldOptions): string[] {
@@ -25,6 +27,8 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
     system,
     coreVersion = '^0.1.0',
     typescriptVersion = '^0.1.0',
+    hmrVersion = '^0.1.0',
+    httpVersion = '^0.1.0',
   } = options;
   const generated: string[] = [];
 
@@ -38,23 +42,35 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
   mkdirSync(join(projectDir, 'src'), { recursive: true });
 
   // package.json
-  writeFile(projectDir, 'package.json', JSON.stringify({
+  const pkg: Record<string, unknown> = {
     name: projectName,
     version: '0.1.0',
     type: 'module',
-    scripts: {
-      build: 'just build',
-      test: 'just test',
-      dev: 'just dev',
-    },
-    dependencies: {
-      '@justscale/core': coreVersion,
-    },
-    devDependencies: {
-      '@justscale/typescript': typescriptVersion,
-      'tsx': '^4.0.0',
-    },
-  }, null, 2) + '\n', generated);
+  };
+  // Pin the package manager. corepack reads this; without it pnpm errors with
+  // "Missing `packageManager` field". Uses the version detected on this machine.
+  if (system.packageManagerVersion) {
+    pkg.packageManager = `${system.packageManager}@${system.packageManagerVersion}`;
+  }
+  pkg.scripts = {
+    build: 'just build',
+    test: 'just test',
+    dev: 'just dev',
+  };
+  pkg.dependencies = {
+    '@justscale/core': coreVersion,
+    '@justscale/http': httpVersion,
+  };
+  // @justscale/hmr is dev-only — `just dev` spawns the app with
+  // `--import @justscale/hmr/register`, so it must be installed or dev mode
+  // fails with ERR_MODULE_NOT_FOUND. The kernel dynamic-imports it only when
+  // NODE_ENV=development, never in production.
+  pkg.devDependencies = {
+    '@justscale/hmr': hmrVersion,
+    '@justscale/typescript': typescriptVersion,
+    'tsx': '^4.0.0',
+  };
+  writeFile(projectDir, 'package.json', JSON.stringify(pkg, null, 2) + '\n', generated);
 
   // pnpm-workspace.yaml — pre-approve dependency build scripts.
   //
@@ -95,50 +111,95 @@ onlyBuiltDependencies:
   writeFile(projectDir, 'justscale.config.ts', `import { defineProject } from '@justscale/core'
 
 export default defineProject({
-  modes: {
-    serve: () => import('./src/serve.js'),
-    cli: () => import('./src/cli.js'),
-  },
+  // The app entry. \`just dev\` runs it with hot reload; \`just build\` bundles
+  // it. Split per environment with { default, development, ... } when needed.
+  app: () => import('./src/app.js'),
   build: {
     outDir: './dist',
   },
 })
 `, generated);
 
-  // src/app.ts
-  writeFile(projectDir, 'src/app.ts', `import JustScale from '@justscale/core'
+  // src/app.ts — the app entry. defineApp() makes it both runnable
+  // (\`just dev\` and \`node dist/app.js\` boot + serve it) and importable
+  // (the CLI and tests call the exported factory).
+  writeFile(projectDir, 'src/app.ts', `import JustScale, { createController, defineApp, defineService } from '@justscale/core'
+import { Get } from '@justscale/http'
 
-export const app = JustScale()
-  // Add services, features, and adapters here
-  // .add(PostgresClient)
-  // .add(AuthFeature)
+// A service holds your domain logic — storage-agnostic and injectable.
+class GreetingService extends defineService({
+  inject: {},
+  factory: () => ({
+    greet: (name: string) => \`Hello, \${name}!\`,
+  }),
+}) {}
+
+// A controller exposes services over a transport (here, HTTP).
+const ApiController = createController({
+  inject: { greeting: GreetingService },
+  routes: ({ greeting }) => ({
+    hello: Get('/').handle((ctx) => ctx.res.json({ message: greeting.greet('JustScale') })),
+  }),
+})
+
+// defineApp wires it together. Run directly (\`just dev\`, \`node dist/app.js\`)
+// it builds + serves; imported by the CLI/tests it returns the builder.
+// \`.add(env)\` pulls in the active environment's providers — the HTTP port and
+// any other env-specific config — from env/<name>.ts.
+export default defineApp(import.meta, (env) =>
+  JustScale()
+    .add(env)
+    .add(GreetingService)
+    .add(ApiController),
+)
 `, generated);
 
-  // src/serve.ts
-  writeFile(projectDir, 'src/serve.ts', `import { app } from './app.js'
+  // env/<name>.ts — per-environment providers. \`just dev\` loads
+  // env/development.ts (NODE_ENV=development); \`just test\` loads env/test.ts;
+  // a production run loads env/production.ts. Each supplies the HTTP port (and
+  // is where you'd wire a real database, secrets, etc.).
+  const envFile = (name: string, type: string, port: string): string =>
+    `import { createConfig, createEnvironment, type EnvContract } from '@justscale/core'
+import { HttpConfig } from '@justscale/http'
 
-// HTTP mode - add controllers and start listening
-export default app
-  // .add(AuthEndpointsFeature)
-  // .add(ApiController)
-  .build()
-`, generated);
+export type AppEnv = EnvContract<{ config: readonly [typeof HttpConfig] }>
 
-  // src/cli.ts
-  writeFile(projectDir, 'src/cli.ts', `import { app } from './app.js'
+const Http = createConfig({
+  provides: [HttpConfig],
+  factory: () => ({
+    [HttpConfig.key]: { port: Number(process.env.PORT ?? ${port}), host: '0.0.0.0' },
+  }),
+})
 
-// CLI mode - add custom CLI controllers
-// Package CLI commands (user add, pg migrate, etc.) are auto-discovered
-export default app
-  .build()
-`, generated);
+export default createEnvironment<AppEnv>({
+  name: '${name}',
+  type: '${type}',
+  providers: [Http],
+})
+`;
+  writeFile(projectDir, 'env/development.ts', envFile('development', 'development', '3000'), generated);
+  writeFile(projectDir, 'env/test.ts', envFile('test', 'test', '0'), generated);
+  writeFile(projectDir, 'env/production.ts', envFile('production', 'production', '8080'), generated);
 
   // .gitignore
   writeFile(projectDir, '.gitignore', `node_modules/
 dist/
 .justscale/
+.direnv/
 *.tsbuildinfo
 `, generated);
+
+  // .envrc — only when direnv is installed. Puts the project's local bins
+  // (just, tsc, eslint, ...) on PATH whenever you cd in, so they work bare in
+  // any shell — the same thing IDE terminals do automatically. Needs a one-off
+  // `direnv allow`. Skipped when direnv isn't present so non-users don't get a
+  // confusing inert file.
+  if (system.hasDirenv) {
+    writeFile(projectDir, '.envrc', `# Put the project's local binaries (just, tsc, ...) on PATH so they work
+# bare in this directory. Run \`direnv allow\` once to enable.
+PATH_add node_modules/.bin
+`, generated);
+  }
 
   // IDE config
   if (system.ides.includes('jetbrains')) {

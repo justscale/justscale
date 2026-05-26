@@ -131,21 +131,29 @@ async function run(): Promise<void> {
   }
 
   const relPath = projectDir === cwd ? '.' : projectName;
-  // For a bare `just` command (like `tsc`), the CLI must be on PATH — i.e. a
-  // global install. Without one it's a local binary, run through the package
-  // manager (npm has no `npm <bin>` fallback, hence npx).
+  // `just`/`tsc` are local bins (node_modules/.bin). They resolve bare inside
+  // IDE terminals (which add that dir to PATH) but not in a plain shell. A
+  // child process can't edit the parent shell's PATH, so we can only tell the
+  // user how to get it for this session.
   const pm = system.packageManager;
   const localJust = pm === 'npm' ? 'npx just' : `${pm} just`;
   console.log('\n  Done! Next steps:\n');
   if (relPath !== '.') {
     console.log(`    cd ${relPath}`);
   }
-  console.log('    just dev              # Start the dev server');
-  console.log('    just install <pkg>    # Add a plugin');
+  if (system.hasDirenv) {
+    // .envrc was generated — one allow and `just`/`tsc` work bare here, always.
+    console.log('    direnv allow          # enable .envrc so `just`/`tsc` work bare here');
+  } else {
+    // No direnv — offer the session-scoped PATH fix.
+    console.log('    export PATH="$PWD/node_modules/.bin:$PATH"   # use `just` directly this session');
+  }
   console.log('');
-  console.log('  For a bare `just` command (like tsc), install the CLI globally once:');
-  console.log('    npm i -g @justscale/core');
-  console.log(`  Or run it project-local: \`${localJust} dev\`  (\`${pm} run dev\` works too).`);
+  console.log('    just dev              # start the dev server');
+  console.log('    just install <pkg>    # add a plugin');
+  console.log('');
+  console.log(`  No PATH change needed: \`${localJust} dev\` (or \`${pm} run dev\`).`);
+  console.log('  Bare `just` everywhere: `npm i -g @justscale/core`.');
   console.log('');
 
   if (system.ides.includes('jetbrains')) {

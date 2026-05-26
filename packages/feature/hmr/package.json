@@ -1,0 +1,56 @@
+{
+  "name": "@justscale/hmr",
+  "version": "0.1.0",
+  "description": "Dev-only HMR orchestration for JustScale — file watcher + loader that drives container.hotReload() without process restart",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/feature/hmr"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "hmr",
+    "hot-reload",
+    "dev"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./register": {
+      "source": "./src/register.ts",
+      "types": "./dist/register.d.ts",
+      "import": "./dist/register.js",
+      "default": "./dist/register.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "ptsc --noEmit",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-concurrency=1 --test-timeout=30000 --test-force-exit 'test/e2e/**/*.e2e.test.ts'"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/typescript": "workspace:*"
+  }
+}
