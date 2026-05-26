@@ -16,6 +16,7 @@ export interface ScaffoldOptions {
   system: SystemInfo
   coreVersion?: string
   typescriptVersion?: string
+  hmrVersion?: string
 }
 
 export function scaffoldProject(options: ScaffoldOptions): string[] {
@@ -25,6 +26,7 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
     system,
     coreVersion = '^0.1.0',
     typescriptVersion = '^0.1.0',
+    hmrVersion = '^0.1.0',
   } = options;
   const generated: string[] = [];
 
@@ -51,6 +53,11 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
       '@justscale/core': coreVersion,
     },
     devDependencies: {
+      // @justscale/hmr is dev-only — `just dev` spawns the app with
+      // `--import @justscale/hmr/register`, so it must be installed or
+      // dev mode fails with ERR_MODULE_NOT_FOUND. It is dynamic-imported
+      // by the kernel only when NODE_ENV=development, never in production.
+      '@justscale/hmr': hmrVersion,
       '@justscale/typescript': typescriptVersion,
       'tsx': '^4.0.0',
     },
