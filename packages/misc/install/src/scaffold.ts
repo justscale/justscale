@@ -17,6 +17,7 @@ export interface ScaffoldOptions {
   coreVersion?: string
   typescriptVersion?: string
   hmrVersion?: string
+  httpVersion?: string
 }
 
 export function scaffoldProject(options: ScaffoldOptions): string[] {
@@ -27,6 +28,7 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
     coreVersion = '^0.1.0',
     typescriptVersion = '^0.1.0',
     hmrVersion = '^0.1.0',
+    httpVersion = '^0.1.0',
   } = options;
   const generated: string[] = [];
 
@@ -51,6 +53,7 @@ export function scaffoldProject(options: ScaffoldOptions): string[] {
     },
     dependencies: {
       '@justscale/core': coreVersion,
+      '@justscale/http': httpVersion,
     },
     devDependencies: {
       // @justscale/hmr is dev-only — `just dev` spawns the app with
@@ -102,43 +105,75 @@ onlyBuiltDependencies:
   writeFile(projectDir, 'justscale.config.ts', `import { defineProject } from '@justscale/core'
 
 export default defineProject({
-  modes: {
-    serve: () => import('./src/serve.js'),
-    cli: () => import('./src/cli.js'),
-  },
+  // The app entry. \`just dev\` runs it with hot reload; \`just build\` bundles
+  // it. Split per environment with { default, development, ... } when needed.
+  app: () => import('./src/app.js'),
   build: {
     outDir: './dist',
   },
 })
 `, generated);
 
-  // src/app.ts
-  writeFile(projectDir, 'src/app.ts', `import JustScale from '@justscale/core'
+  // src/app.ts — the app entry. defineApp() makes it both runnable
+  // (\`just dev\` and \`node dist/app.js\` boot + serve it) and importable
+  // (the CLI and tests call the exported factory).
+  writeFile(projectDir, 'src/app.ts', `import JustScale, { createController, defineApp, defineService } from '@justscale/core'
+import { Get } from '@justscale/http'
 
-export const app = JustScale()
-  // Add services, features, and adapters here
-  // .add(PostgresClient)
-  // .add(AuthFeature)
+// A service holds your domain logic — storage-agnostic and injectable.
+class GreetingService extends defineService({
+  inject: {},
+  factory: () => ({
+    greet: (name: string) => \`Hello, \${name}!\`,
+  }),
+}) {}
+
+// A controller exposes services over a transport (here, HTTP).
+const ApiController = createController({
+  inject: { greeting: GreetingService },
+  routes: ({ greeting }) => ({
+    hello: Get('/').handle((ctx) => ctx.res.json({ message: greeting.greet('JustScale') })),
+  }),
+})
+
+// defineApp wires it together. Run directly (\`just dev\`, \`node dist/app.js\`)
+// it builds + serves; imported by the CLI/tests it returns the builder.
+// \`.add(env)\` pulls in the active environment's providers — the HTTP port and
+// any other env-specific config — from env/<name>.ts.
+export default defineApp(import.meta, (env) =>
+  JustScale()
+    .add(env)
+    .add(GreetingService)
+    .add(ApiController),
+)
 `, generated);
 
-  // src/serve.ts
-  writeFile(projectDir, 'src/serve.ts', `import { app } from './app.js'
+  // env/<name>.ts — per-environment providers. \`just dev\` loads
+  // env/development.ts (NODE_ENV=development); \`just test\` loads env/test.ts;
+  // a production run loads env/production.ts. Each supplies the HTTP port (and
+  // is where you'd wire a real database, secrets, etc.).
+  const envFile = (name: string, type: string, port: string): string =>
+    `import { createConfig, createEnvironment, type EnvContract } from '@justscale/core'
+import { HttpConfig } from '@justscale/http'
 
-// HTTP mode - add controllers and start listening
-export default app
-  // .add(AuthEndpointsFeature)
-  // .add(ApiController)
-  .build()
-`, generated);
+export type AppEnv = EnvContract<{ config: readonly [typeof HttpConfig] }>
 
-  // src/cli.ts
-  writeFile(projectDir, 'src/cli.ts', `import { app } from './app.js'
+const Http = createConfig({
+  provides: [HttpConfig],
+  factory: () => ({
+    [HttpConfig.key]: { port: Number(process.env.PORT ?? ${port}), host: '0.0.0.0' },
+  }),
+})
 
-// CLI mode - add custom CLI controllers
-// Package CLI commands (user add, pg migrate, etc.) are auto-discovered
-export default app
-  .build()
-`, generated);
+export default createEnvironment<AppEnv>({
+  name: '${name}',
+  type: '${type}',
+  providers: [Http],
+})
+`;
+  writeFile(projectDir, 'env/development.ts', envFile('development', 'development', '3000'), generated);
+  writeFile(projectDir, 'env/test.ts', envFile('test', 'test', '0'), generated);
+  writeFile(projectDir, 'env/production.ts', envFile('production', 'production', '8080'), generated);
 
   // .gitignore
   writeFile(projectDir, '.gitignore', `node_modules/
