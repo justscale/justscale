@@ -1,0 +1,54 @@
+{
+  "name": "@justscale/datastar",
+  "version": "0.1.0",
+  "description": "Datastar integration for reactive server-side rendering",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/protocol/datastar"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "datastar",
+    "ssr",
+    "reactive",
+    "typescript"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "ptsc --noEmit"
+  },
+  "dependencies": {
+    "@justscale/observable": "^0.1.5"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@justscale/typescript": "workspace:*",
+    "@starfederation/datastar": "1.0.0-beta.11",
+    "puppeteer": "^24.0.0",
+    "tsx": "^4.21.0"
+  }
+}
