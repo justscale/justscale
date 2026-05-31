@@ -19,7 +19,10 @@ just scales - for TypeScript backends.
 // A model is pure domain data - storage owns the id, your code never sees it.
 export class Link extends defineModel({
   name: 'Link',
-  fields: { slug: field.string().unique(), target: field.text() },
+  fields: { 
+    slug: field.string().unique(),
+    target: field.text()
+  },
 }) {}
 
 // A service is plain methods over injected dependencies - no transport, no SQL.
@@ -64,9 +67,71 @@ below.
 - **Transport-agnostic controllers** — the same route definition is
   served by HTTP, CLI, and Server-Sent Events today; WebSocket and gRPC
   graduate from `next` as those packages settle.
+- **Authorization on the model** — declare `permit()` rules next to the
+  fields they guard; `.guard(Model.can.edit)` rejects unauthorized calls
+  and one route can return a different shape per principal, all checked at
+  compile time.
 - **Durable processes** — `createProcess` workflows written as plain
   async code that survive restarts and route across instances.
 - **Custom TS compiler** (`ptsc`) — process transforms + IDE support.
+
+## Authorization lives on the model
+
+Permission rules sit next to the fields they guard, then the controller
+enforces them at the edge. The same route can return a different shape
+depending on who is asking — and the compiler checks every branch.
+
+```typescript
+import { permit, Everyone, permissions } from '@justscale/permission';
+
+export class Post extends defineModel({
+  name: 'Post',
+  fields: { author: field.ref(Author), title: field.string(), body: field.text() },
+  // Rules live with the data. `.when(author)` ties "only the author" to the
+  // row's reference, so one rule drives route guards, response views, and
+  // filtered queries - declared once, reused everywhere it's enforced.
+  permissions: ({ author }) => ({
+    edit: permit(Author).when(author),
+    view: permit(Everyone).always(),
+  }),
+}) {}
+
+export const posts = createController('/', {
+  inject: { svc: Posts },
+  routes: ({ svc }) => ({
+    // 403 unless the caller satisfies Post.can.edit.
+    update: Put('/posts/:post')
+      .types({ Post })
+      .use(auth).use(permissions)
+      .guard(Post.can.edit)
+      .returns(204)
+      .handle(async ({ params, body }) => {
+        svc.edit(await params.post, body);
+        res.status(204);
+      }),
+
+    // One route, two response shapes - picked by which permission holds.
+    read: Get('/posts/:post')
+      .types({ Post })
+      .use(auth).use(permissions)
+      .returns(200, PostOwnerView, Post.can.edit)
+      .returns(200, PostPublicView, Post.can.view)
+      .handle(async ({ params, res }) => {
+        const post = await params.post;
+        
+        if (res.permission === 'edit') {
+          return res.json({ title: post.title, body: post.body }); 
+        }
+        return res.json({ title: post.title });
+      }),
+  }),
+});
+```
+
+`permit(Author)` resolves the caller through your principal provider; `Everyone`
+matches any caller. The full picture — filtered queries via `byPermissions()`,
+explicit grants, field-level visibility — is in the
+[webshop](examples/webshop) and [crowdfunding](examples/crowdfunding) examples.
 
 ## Install
 
@@ -83,8 +148,8 @@ and ships JustScale-aware Claude Code skills under `.claude/skills/`.
 ## Packages
 
 This 0.x release ships the tier-1 surface. More packages
-(`websocket`, `event`, `redis`, `permission`, ...) graduate
-out of `next` as their APIs settle.
+(`websocket`, `event`, `redis`, ...) graduate out of `next`
+as their APIs settle.
 
 | Package | Description |
 |-|-|
@@ -93,8 +158,11 @@ out of `next` as their APIs settle.
 | `@justscale/testing` | `createTestKit` harness, mocks, in-memory adapters |
 | `@justscale/http` | HTTP route factories, body limits, CORS, OpenAPI hooks |
 | `@justscale/sse` | Server-Sent Events route factory + streaming handlers |
+| `@justscale/datastar` | Datastar reactive streaming — server-driven hypermedia over SSE |
 | `@justscale/postgres` | Repositories, migrations, advisory locks, LISTEN/NOTIFY |
 | `@justscale/auth` | User/Session models, password hashing, auth middleware |
+| `@justscale/permission` | `permit()` rules on models, `Model.can.*` guards, permission-scoped responses |
+| `@justscale/hmr` | Dev-only hot module reload — file watcher driving `container.hotReload()` |
 | `create-justscale` | Project scaffolder (`npx create-justscale my-app`) |
 
 ## Requirements
