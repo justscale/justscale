@@ -234,6 +234,19 @@ importers:
         specifier: ^4.4.1
         version: 4.4.3
 
+  packages/feature/permission:
+    dependencies:
+      '@justscale/core':
+        specifier: workspace:*
+        version: link:../../core/core
+    devDependencies:
+      '@justscale/testing':
+        specifier: workspace:*
+        version: link:../../core/testing
+      '@justscale/typescript':
+        specifier: workspace:*
+        version: link:../../core/typescript
+
   packages/misc/install:
     devDependencies:
       '@justscale/typescript':
