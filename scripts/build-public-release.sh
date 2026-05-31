@@ -113,6 +113,7 @@ sync_pkg            packages/core/typescript "${TS_STRIP[@]}" "${TS_KEEP[@]}"
 # --- rest (clean mirrors) ---
 sync_pkg packages/core/testing
 sync_pkg packages/protocol/http
+sync_pkg packages/protocol/websocket
 sync_pkg packages/adapters/postgres
 sync_pkg packages/feature/auth
 sync_pkg packages/feature/permission
@@ -123,12 +124,14 @@ sync_pkg packages/misc/install
 # (core/typescript/testing/http/postgres/auth/sse/permission) belong here.
 # .justscale is a dev-time process cache, never shipped.
 #
-# package.json is KEEP-excluded for the permission showcases: the release
-# copies are renamed to the @justscale-examples/ scope so the publish
-# workflow's `^@justscale/` package grep never picks them up.
+# package.json is KEEP-excluded for the showcases: the release copies are
+# renamed to the @justscale-examples/ scope so the publish workflow's
+# `^@justscale/` package grep never picks them up. chat-app also KEEP-excludes
+# src/dev.ts (release runs without the internal-only @justscale/feature-shell).
 sync_pkg examples/order-fulfillment .justscale
 sync_pkg examples/webshop      .justscale package.json
 sync_pkg examples/crowdfunding .justscale package.json
+sync_pkg examples/chat-app     .justscale package.json src/dev.ts
 
 echo
 echo "swap   plugins/index.ts <- plugins/index.public.ts"

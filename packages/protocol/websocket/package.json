@@ -1,0 +1,70 @@
+{
+  "name": "@justscale/websocket",
+  "version": "0.1.0",
+  "description": "WebSocket upgrade handlers and real-time messaging for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/protocol/websocket"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "keywords": [
+    "justscale",
+    "websocket",
+    "ws",
+    "realtime",
+    "typescript"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./builder": {
+      "source": "./src/builder/index.ts",
+      "types": "./dist/builder/index.d.ts",
+      "import": "./dist/builder/index.js",
+      "default": "./dist/builder/index.js"
+    },
+    "./testing": {
+      "source": "./src/testing.ts",
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ptsc -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "ptsc --noEmit",
+    "test": "tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'"
+  },
+  "dependencies": {
+    "ws": "^8.20.0"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "@justscale/testing": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "peerDependenciesMeta": {
+    "@justscale/testing": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

@@ -389,6 +389,28 @@ importers:
         specifier: ^4.21.0
         version: 4.22.3
 
+  packages/protocol/websocket:
+    dependencies:
+      '@justscale/core':
+        specifier: workspace:*
+        version: link:../../core/core
+      '@justscale/http':
+        specifier: workspace:*
+        version: link:../http
+      '@justscale/testing':
+        specifier: workspace:*
+        version: link:../../core/testing
+      ws:
+        specifier: ^8.20.0
+        version: 8.21.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.4.3
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
+
 packages:
 
   '@babel/code-frame@7.29.7':
@@ -842,6 +864,9 @@ packages:
 
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yauzl@2.10.3':
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
@@ -2613,6 +2638,10 @@ snapshots:
   '@types/node@25.9.1':
     dependencies:
       undici-types: 7.24.6
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 25.9.1
 
   '@types/yauzl@2.10.3':
     dependencies:

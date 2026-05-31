@@ -65,8 +65,8 @@ below.
   `Locked<T>`. The only way to obtain one is
   `using x = await repo.lock(ref)` — atomic with the read.
 - **Transport-agnostic controllers** — the same route definition is
-  served by HTTP, CLI, and Server-Sent Events today; WebSocket and gRPC
-  graduate from `next` as those packages settle.
+  served by HTTP, CLI, Server-Sent Events, and WebSocket today; gRPC
+  graduates from `next` as that package settles.
 - **Authorization on the model** — declare `permit()` rules next to the
   fields they guard; `.guard(Model.can.edit)` rejects unauthorized calls
   and one route can return a different shape per principal, all checked at
@@ -148,7 +148,7 @@ and ships JustScale-aware Claude Code skills under `.claude/skills/`.
 ## Packages
 
 This 0.x release ships the tier-1 surface. More packages
-(`websocket`, `event`, `redis`, ...) graduate out of `next`
+(`event`, `redis`, `graphql`, ...) graduate out of `next`
 as their APIs settle.
 
 | Package | Description |
@@ -159,6 +159,7 @@ as their APIs settle.
 | `@justscale/http` | HTTP route factories, body limits, CORS, OpenAPI hooks |
 | `@justscale/sse` | Server-Sent Events route factory + streaming handlers |
 | `@justscale/datastar` | Datastar reactive streaming — server-driven hypermedia over SSE |
+| `@justscale/websocket` | `Ws` route factory, async-iterable messages, HTTP-upgrade handling |
 | `@justscale/postgres` | Repositories, migrations, advisory locks, LISTEN/NOTIFY |
 | `@justscale/auth` | User/Session models, password hashing, auth middleware |
 | `@justscale/permission` | `permit()` rules on models, `Model.can.*` guards, permission-scoped responses |
