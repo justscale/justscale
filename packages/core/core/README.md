@@ -75,7 +75,7 @@ createController({
 });
 ```
 
-Controllers are DI units that hold routes. Route factories come from transport packages — `Get`/`Post`/... from `@justscale/http`, `Cli` from `@justscale/core/cli` — and all flow through the same `.use(middleware).guard(...).handle(...)` pipeline with per-route typing. Additional transports (WebSocket, SSE, RPC) graduate from `next` as those packages settle.
+Controllers are DI units that hold routes. Route factories come from transport packages — `Get`/`Post`/... from `@justscale/http`, `Cli` from `@justscale/core/cli`, server-sent events from `@justscale/sse` — and all flow through the same `.use(middleware).guard(...).handle(...)` pipeline with per-route typing. Further transports (WebSocket, RPC) graduate from `next` as those packages settle.
 
 ### Features — [justscale.sh/docs/fundamentals/features](https://justscale.sh/docs/fundamentals/features)
 
@@ -171,6 +171,25 @@ repo.find({ where: User.fields.email.eq('test@example.com') });
 Field builders, not Zod — `field.*` gives you typed queryable field expressions (`.eq`, `.gt`, `.ilike`, composed with `and`/`or`). Services inject the abstract `ModelRepository.of(User)` token and stay storage-agnostic; the concrete implementation (e.g. `createPgRepository` from `@justscale/postgres`) is bound at compose time.
 
 References (`field.ref(OtherModel)`) are first-class values, not string IDs. Controllers receive `Reference<T>` in their params and services take `Locked<T>` for mutations; the framework keeps the domain ID-free.
+
+## Authorization — [justscale.sh/docs/features/permissions](https://justscale.sh/docs/features/permissions)
+
+Models declare *who may do what* next to their fields. A `permissions:` block generates a typed `Model.can.*` map of guards; an `access:` block restricts field-level visibility (`see`) and mutability (`set`). Both are evaluated by core — the rule builders (`permit()`, `Everyone`) ship in `@justscale/permission`.
+
+```ts
+import { permit, Everyone } from '@justscale/permission';
+
+class Post extends defineModel({
+  name: 'Post',
+  fields: { author: field.ref(Author), title: field.string(), body: field.text() },
+  permissions: ({ author }) => ({
+    edit: permit(Author).when(author), // only the row's author
+    view: permit(Everyone).always(),
+  }),
+}) {}
+```
+
+One rule then drives the whole request path: guard a route with `.guard(Post.can.edit)`, branch a response by `.returns(200, View, Post.can.view)`, or fold the rule into a query with `byPermissions(Post.can.view, principal)` — declared once, enforced everywhere.
 
 ## Distributed primitives
 
