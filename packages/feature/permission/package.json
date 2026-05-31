@@ -1,0 +1,41 @@
+{
+  "name": "@justscale/permission",
+  "version": "0.1.0",
+  "description": "Model-level permission declarations with typed guards for JustScale",
+  "author": "JustScale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justscale/justscale.git",
+    "directory": "packages/feature/permission"
+  },
+  "homepage": "https://justscale.sh",
+  "bugs": {
+    "url": "https://github.com/justscale/justscale/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../core/typescript/dist/compiler/ptsc.js -b tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "typecheck": "node ../../core/typescript/dist/compiler/ptsc.js --noEmit",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'test/*.test.ts' 'src/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@justscale/testing": "workspace:*",
+    "@justscale/typescript": "workspace:*"
+  },
+  "peerDependencies": {
+    "@justscale/core": "workspace:*"
+  }
+}
