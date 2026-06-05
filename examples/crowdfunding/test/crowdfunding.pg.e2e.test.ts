@@ -1,17 +1,18 @@
 import { describe, test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import postgres from 'postgres';
-import JustScale, { bindRepository, bindService, AbstractChannelBackend, createConfig } from '@justscale/core';
+import JustScale, { bindRepository, AbstractChannelBackend, createConfig, createSecretProvider } from '@justscale/core';
 import { ModelRepository } from '@justscale/core/models';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
+  AbstractPostgresClient,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresLockFeature,
   PostgresProcessFeature,
   PostgresProcessConfig,
+  PostgresSecrets,
   PgProcessExecution,
   PgSignalSubscription,
-  type AbstractPostgresClient,
 } from '@justscale/postgres';
 import { PgSchemaIntrospection } from '@justscale/postgres/testing';
 import { defaultHttpConfig } from '@justscale/http/testing';
@@ -149,8 +150,10 @@ describe('Campaign Lifecycle (Postgres e2e)', { timeout: 30000 }, async () => {
     testDb = await createTestDb();
     sql = postgres(testDb.connectionString);
 
-    const PostgresClient = createPostgresClient({ connectionString: testDb.connectionString });
-    const PgChannelBackend = createPostgresChannelBackend({ connectionString: testDb.connectionString });
+    const Secrets = createSecretProvider({
+      provides: [PostgresSecrets],
+      factory: () => ({ [PostgresSecrets.key]: { connectionString: testDb.connectionString } }),
+    });
 
     const ProcessConfig = createConfig({
       provides: [PostgresProcessConfig],
@@ -160,11 +163,11 @@ describe('Campaign Lifecycle (Postgres e2e)', { timeout: 30000 }, async () => {
     });
 
     built = (JustScale() as any)
+      .add(Secrets)
       .add(defaultHttpConfig)
       .add(ProcessConfig)
-      .add(PostgresClient)
-      .add(PgChannelBackend)
-      .add(bindService(AbstractChannelBackend, PgChannelBackend))
+      .add(PostgresFeature)
+      .add(PostgresChannelFeature)
       .add(PostgresLockFeature)
       .add(PostgresProcessFeature)
       .add(CreatorRepository)
@@ -190,7 +193,7 @@ describe('Campaign Lifecycle (Postgres e2e)', { timeout: 30000 }, async () => {
     app = built.compile();
     await app.ready;
 
-    client = await app.container.resolve(PostgresClient);
+    client = await app.container.resolve(AbstractPostgresClient);
     await new PgSchemaIntrospection(client).sync(...ALL_PG_MODELS);
 
     // Access the executor's timer scheduler for TestClock

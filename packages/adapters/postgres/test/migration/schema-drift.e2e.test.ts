@@ -30,8 +30,8 @@ import assert from 'node:assert';
 import { defineModel, field } from '@justscale/core/models';
 import {
   createPgModel,
-  createRawPostgresClient,
 } from '../../src/index.js';
+import { createRawPostgresClient } from '../../src/client/client.js';
 import type { AbstractPostgresClient } from '../../src/client/client.js';
 import { createTestDatabase, requirePostgres } from '../__mocks__/test-setup.js';
 

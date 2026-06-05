@@ -40,10 +40,10 @@ import { join } from 'node:path';
 import { defineModel, field } from '@justscale/core/models';
 import {
   createPgModel,
-  createRawPostgresClient,
   PgMigrationGenerator,
   PgSchemaIntrospection,
 } from '../../src/index.js';
+import { createRawPostgresClient } from '../../src/client/client.js';
 import type { AbstractPostgresClient } from '../../src/client/client.js';
 import { createTestDatabase, requirePostgres } from '../__mocks__/test-setup.js';
 

@@ -36,10 +36,10 @@ import {
   clearRegisteredMigrations,
   createMigrationRunner,
   createPostgresLockProvider,
-  createRawPostgresClient,
   defineMigration,
   getRegisteredMigrations,
 } from '../../src/index.js';
+import { createRawPostgresClient } from '../../src/client/client.js';
 import type { AbstractPostgresClient } from '../../src/client/client.js';
 import { createTestDatabase, requirePostgres } from '../__mocks__/test-setup.js';
 

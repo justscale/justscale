@@ -9,7 +9,6 @@ import assert from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import JustScale from '@justscale/core';
 import {
-  createPostgresClient,
   createPostgresLockProvider,
   withLockContext,
   isLockHeld,
@@ -18,6 +17,7 @@ import {
   DISTRIBUTED_LOCKS_MIGRATION,
   type AbstractPostgresClient,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
 import { PostgresLockProvider } from '../src/lock/lock-provider.js';
 import { requirePostgres, CONNECTION_STRING } from './__mocks__/test-setup.js';
 import { type LockOptions } from '@justscale/core';

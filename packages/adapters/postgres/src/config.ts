@@ -53,8 +53,39 @@ export const PostgresMigrationDevConfig = defineConfigPartial(
   }),
 );
 
+/**
+ * Connection-pool tuning for the client provided by `PostgresFeature`.
+ *
+ * Entirely optional - omit it and the adapter's defaults apply (`max` 10,
+ * idle 20s, connect 10s). Provide it to size the pool for your concurrency
+ * (each held `repo.lock()` pins a pool connection, so a pod's pool should
+ * cover its peak concurrent locked requests). This is the knob that used to
+ * require dropping down to `createPostgresClient({ max })`.
+ *
+ * @example
+ * ```typescript
+ * createConfig({
+ *   provides: [PostgresClientConfig],
+ *   factory: () => ({ [PostgresClientConfig.key]: { max: 25 } }),
+ * })
+ * // or at runtime:  just config set postgres:client max 25
+ * ```
+ */
+export const PostgresClientConfig = defineConfigPartial(
+  'postgres:client',
+  z.object({
+    /** Max connections in the pool. Default 10. */
+    max: z.number().int().positive().optional(),
+    /** Seconds an idle connection is kept before closing. Default 20. */
+    idleTimeout: z.number().int().nonnegative().optional(),
+    /** Seconds to wait for a new connection before failing. Default 10. */
+    connectTimeout: z.number().int().nonnegative().optional(),
+  }),
+);
+
 declare module '@justscale/core' {
   interface RegisteredConfigPartials {
+    postgresClient: typeof PostgresClientConfig;
     postgresProcess: typeof PostgresProcessConfig;
     postgresMigration: typeof PostgresMigrationConfig;
     postgresMigrationDev: typeof PostgresMigrationDevConfig;

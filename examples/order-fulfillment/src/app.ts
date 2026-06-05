@@ -1,16 +1,17 @@
 import JustScale, {
   bindRepository,
-  bindService,
-  AbstractChannelBackend,
   createConfig,
+  createSecretProvider,
 } from '@justscale/core';
 import { ModelRepository } from '@justscale/core/models';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
+  AbstractPostgresClient,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresLockFeature,
   PostgresProcessFeature,
   PostgresProcessConfig,
+  PostgresSecrets,
 } from '@justscale/postgres';
 import { Order } from './domains/order/order.model.js';
 import { OrderSignals } from './domains/order/order.signals.js';
@@ -25,8 +26,10 @@ const defaultConnectionString = `postgres://justscale:justscale@localhost:${proc
 // Builds the full Postgres-backed app. Workers and tests share this so a
 // process started on one node is resumed by a signal sent from another.
 export function buildApp(connectionString: string = process.env.DATABASE_URL ?? defaultConnectionString) {
-  const PostgresClient = createPostgresClient({ connectionString });
-  const PgChannelBackend = createPostgresChannelBackend({ connectionString });
+  const Secrets = createSecretProvider({
+    provides: [PostgresSecrets],
+    factory: () => ({ [PostgresSecrets.key]: { connectionString } }),
+  });
 
   const ProcessConfig = createConfig({
     provides: [PostgresProcessConfig],
@@ -36,10 +39,10 @@ export function buildApp(connectionString: string = process.env.DATABASE_URL ?? 
   });
 
   const built = (JustScale() as any)
+    .add(Secrets)
     .add(ProcessConfig)
-    .add(PostgresClient)
-    .add(PgChannelBackend)
-    .add(bindService(AbstractChannelBackend, PgChannelBackend))
+    .add(PostgresFeature)
+    .add(PostgresChannelFeature)
     .add(PostgresLockFeature)
     .add(PostgresProcessFeature)
     .add(OrderRepository)
@@ -48,5 +51,5 @@ export function buildApp(connectionString: string = process.env.DATABASE_URL ?? 
     .add(OrderService)
     .build();
 
-  return { built, PostgresClient };
+  return { built, PostgresClient: AbstractPostgresClient };
 }

@@ -17,10 +17,10 @@ import { describe, test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import postgres from 'postgres';
 import {
-  createPostgresClient,
   SCHEDULED_TASKS_MIGRATION,
   keyOf,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
 import JustScale from '@justscale/core';
 import { InMemoryProcessFeature } from '@justscale/core/process';
 import { InMemoryLockFeature } from '@justscale/core/memory';
