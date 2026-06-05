@@ -16,11 +16,11 @@ import JustScale, {
 } from '@justscale/core';
 import { defineService } from '@justscale/core';
 import {
-  createPostgresClient,
   createPgModel,
   createPgRepository,
   ModelChangeChannels,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
 
 // ============================================================================
 // Test Models & Services

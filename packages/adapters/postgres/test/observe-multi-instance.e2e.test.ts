@@ -25,14 +25,14 @@ import { InMemoryLockFeature } from '@justscale/core/memory';
 import { defineModel, field } from '@justscale/core/models';
 import { AbstractChannelBackend } from '@justscale/core';
 import {
-  createPostgresClient,
   createPgModel,
   createPgRepository,
   type AbstractPostgresClient,
   ModelChangeChannels,
-  createPostgresChannelBackend,
   keyOf,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
+import { createPostgresChannelBackend } from '../src/channel/channel-backend.js';
 import { PgSchemaIntrospection } from '../src/migration/migration.js';
 import { requirePostgres, CONNECTION_STRING } from './__mocks__/test-setup.js';
 

@@ -35,9 +35,9 @@ import { readFile } from 'node:fs/promises';
 import { defineModel, field } from '@justscale/core/models';
 import {
   createPgModel,
-  createRawPostgresClient,
   PgSchemaIntrospection,
 } from '../../src/index.js';
+import { createRawPostgresClient } from '../../src/client/client.js';
 import { DestructiveMigrationError } from '../../src/migration/migration.js';
 import type { AbstractPostgresClient } from '../../src/client/client.js';
 import { createTestDatabase, requirePostgres } from '../__mocks__/test-setup.js';

@@ -18,13 +18,13 @@ import { defineService, bindService, AbstractChannelBackend, MemoryChannelBacken
 import { InMemoryProcessFeature } from '@justscale/core/process';
 import { InMemoryLockFeature } from '@justscale/core/memory';
 import {
-  createPostgresClient,
   createPgModel,
   createPgRepository,
   ModelChangeChannels,
   PgQueryCompiler,
   ModelRegistry,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
 import { PgSchemaIntrospection } from '../src/migration/migration.js';
 import { requirePostgres, CONNECTION_STRING } from './__mocks__/test-setup.js';
 

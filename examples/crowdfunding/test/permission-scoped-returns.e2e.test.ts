@@ -16,9 +16,9 @@ import postgres from 'postgres';
 import JustScale, {
   bindRepository,
   bindService,
-  AbstractChannelBackend,
   ChannelFeature,
   createConfig,
+  createSecretProvider,
 } from '@justscale/core';
 import { ModelRepository } from '@justscale/core/models';
 import {
@@ -33,11 +33,13 @@ import {
   User,
 } from '@justscale/auth';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
+  AbstractPostgresClient,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresProcessFeature,
   PostgresProcessConfig,
   PostgresLockFeature,
+  PostgresSecrets,
   PgProcessExecution,
   PgSignalSubscription,
 } from '@justscale/postgres';
@@ -167,8 +169,10 @@ describe('Permission-scoped .returns() on GET /campaigns/:campaign (pg e2e)', { 
   const testDb = await createTestDb();
   const sql = postgres(testDb.connectionString);
 
-  const PostgresClient = createPostgresClient({ connectionString: testDb.connectionString });
-  const PgChannelBackend = createPostgresChannelBackend({ connectionString: testDb.connectionString });
+  const Secrets = createSecretProvider({
+    provides: [PostgresSecrets],
+    factory: () => ({ [PostgresSecrets.key]: { connectionString: testDb.connectionString } }),
+  });
 
   const ProcessConfig = createConfig({
     provides: [PostgresProcessConfig],
@@ -178,11 +182,11 @@ describe('Permission-scoped .returns() on GET /campaigns/:campaign (pg e2e)', { 
   });
 
   const app = (JustScale())
+    .add(Secrets)
     .add(defaultHttpConfig)
     .add(ProcessConfig)
-    .add(PostgresClient)
-    .add(PgChannelBackend)
-    .add(bindService(AbstractChannelBackend, PgChannelBackend))
+    .add(PostgresFeature)
+    .add(PostgresChannelFeature)
     .add(ChannelFeature)
     .add(PostgresLockFeature)
     .add(PostgresProcessFeature)
@@ -220,7 +224,7 @@ describe('Permission-scoped .returns() on GET /campaigns/:campaign (pg e2e)', { 
 
   await app.ready;
 
-  const pgClient = await app.container.resolve(PostgresClient);
+  const pgClient = await app.container.resolve(AbstractPostgresClient);
   await new PgSchemaIntrospection(pgClient).sync(...ALL_PG_MODELS);
 
   const creatorRepo = await app.container.resolve(CreatorRepository);

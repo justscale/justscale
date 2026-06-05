@@ -20,9 +20,9 @@ import postgres from 'postgres';
 import JustScale, {
   bindRepository,
   bindService,
-  AbstractChannelBackend,
   ChannelFeature,
   createConfig,
+  createSecretProvider,
 } from '@justscale/core';
 import { ModelRepository } from '@justscale/core/models';
 import {
@@ -38,11 +38,13 @@ import {
 } from '@justscale/auth';
 import { AbstractPrincipalProvider } from '@justscale/permission';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
+  AbstractPostgresClient,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresProcessFeature,
   PostgresProcessConfig,
   PostgresLockFeature,
+  PostgresSecrets,
   PgProcessExecution,
   PgSignalSubscription,
 } from '@justscale/postgres';
@@ -196,8 +198,10 @@ describe('Multi-resolver contribution pattern (pg e2e)', { timeout: 30000 }, asy
   const testDb = await createTestDb();
   const sql = postgres(testDb.connectionString);
 
-  const PostgresClient = createPostgresClient({ connectionString: testDb.connectionString });
-  const PgChannelBackend = createPostgresChannelBackend({ connectionString: testDb.connectionString });
+  const Secrets = createSecretProvider({
+    provides: [PostgresSecrets],
+    factory: () => ({ [PostgresSecrets.key]: { connectionString: testDb.connectionString } }),
+  });
 
   const ProcessConfig = createConfig({
     provides: [PostgresProcessConfig],
@@ -207,11 +211,11 @@ describe('Multi-resolver contribution pattern (pg e2e)', { timeout: 30000 }, asy
   });
 
   const app = JustScale()
+    .add(Secrets)
     .add(defaultHttpConfig)
     .add(ProcessConfig)
-    .add(PostgresClient)
-    .add(PgChannelBackend)
-    .add(bindService(AbstractChannelBackend, PgChannelBackend))
+    .add(PostgresFeature)
+    .add(PostgresChannelFeature)
     .add(ChannelFeature)
     .add(PostgresLockFeature)
     .add(PostgresProcessFeature)
@@ -249,7 +253,7 @@ describe('Multi-resolver contribution pattern (pg e2e)', { timeout: 30000 }, asy
 
   await app.ready;
 
-  const pgClient = await app.container.resolve(PostgresClient);
+  const pgClient = await app.container.resolve(AbstractPostgresClient);
   await new PgSchemaIntrospection(pgClient).sync(...ALL_PG_MODELS);
 
   const creatorRepo = await app.container.resolve(CreatorRepository);

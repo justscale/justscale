@@ -1,7 +1,7 @@
-import JustScale, { bindRepository, createConfig } from '@justscale/core';
+import JustScale, { bindRepository, createConfig, createSecretProvider } from '@justscale/core';
 import { HttpConfig } from '@justscale/http';
 import { ModelRepository } from '@justscale/core/models';
-import { createPostgresClient } from '@justscale/postgres';
+import { PostgresFeature, PostgresChannelFeature, PostgresSecrets } from '@justscale/postgres';
 
 import { Link } from './domains/link/link.model.js';
 import { LinkService } from './domains/link/link.service.js';
@@ -22,10 +22,15 @@ const Config = createConfig({
 // Bootstrap wires the concrete adapters. The domain (model + service) is
 // unaware any of this exists - swap the repository and nothing above changes.
 export function createApp(connectionString = DEFAULT_CONNECTION_STRING) {
-  const PgClient = createPostgresClient({ connectionString });
+  const Secrets = createSecretProvider({
+    provides: [PostgresSecrets],
+    factory: () => ({ [PostgresSecrets.key]: { connectionString } }),
+  });
   return JustScale()
+    .add(Secrets)
     .add(Config)
-    .add(PgClient)
+    .add(PostgresFeature)
+    .add(PostgresChannelFeature)
     .add(LinkRepository)
     .add(bindRepository(ModelRepository.of(Link), LinkRepository))
     .add(LinkService)

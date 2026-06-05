@@ -9,15 +9,15 @@
  * - PostgresPubSub - Real-time messaging via LISTEN/NOTIFY
  */
 
-// Client
+// Client. The low-level `createPostgresClient` / `createRawPostgresClient`
+// factories moved to `@justscale/postgres/advanced` - normal apps use
+// `PostgresFeature` (pool size via `PostgresClientConfig`).
 export {
   AbstractPostgresClient,
   type PostgresClientOptions,
   type PostgresClientDef,
   type TransactionOptions,
   type IsolationLevel,
-  createPostgresClient,
-  createRawPostgresClient,
   getCurrentTransactionContext,
 } from './client/client.js';
 
@@ -49,11 +49,10 @@ export {
   type Subscription,
 } from './channel/pubsub.js';
 
-// Channel Backend - raw PostgresChannelBackend class is intentionally not
-// re-exported; consumers use the service via PostgresChannelFeature or
-// createPostgresChannelBackend().
+// Channel Backend - use the service via `PostgresChannelFeature`. The raw
+// `createPostgresChannelBackend()` factory moved to
+// `@justscale/postgres/advanced`.
 export {
-  createPostgresChannelBackend,
   type PostgresChannelBackendOptions,
 } from './channel/channel-backend.js';
 
@@ -68,6 +67,7 @@ export {
 
 // Config partials
 export {
+  PostgresClientConfig,
   PostgresProcessConfig,
   PostgresMigrationConfig,
   PostgresMigrationDevConfig,

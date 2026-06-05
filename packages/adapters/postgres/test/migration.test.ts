@@ -2,12 +2,12 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
 import { defineModel, field } from '@justscale/core/models';
 import {
-  createRawPostgresClient,
   createPgModel,
   diffSchema,
   createMigrationDatabase,
   PgSchemaIntrospection,
 } from '../src/index.js';
+import { createRawPostgresClient } from '../src/client/client.js';
 import type { AbstractPostgresClient } from '../src/client/client.js';
 import type { Database } from '../src/migration/migration-schema.js';
 import { requirePostgres, CONNECTION_STRING } from './__mocks__/test-setup.js';

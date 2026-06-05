@@ -1,5 +1,6 @@
 import {
   AbstractChannelBackend,
+  Config,
   Logger,
   Secret,
   createFeatureBuilder,
@@ -7,6 +8,7 @@ import {
 } from '@justscale/core';
 import { AbstractPostgresClient, createRawPostgresClient } from './client/client.js';
 import { PostgresChannelBackend } from './channel/channel-backend.js';
+import { PostgresClientConfig } from './config.js';
 import { PostgresSecrets } from './secrets.js';
 
 /**
@@ -25,8 +27,24 @@ import { PostgresSecrets } from './secrets.js';
 export const PostgresClientService = defineService({
   inject: { secrets: Secret.of(PostgresSecrets), logger: Logger },
   provides: [AbstractPostgresClient],
-  factory: ({ secrets, logger }) =>
-    createRawPostgresClient({ connectionString: secrets.connectionString }, logger),
+  factory: async ({ secrets, logger }, resolve) => {
+    // Pool tuning is read from the OPTIONAL `PostgresClientConfig` partial
+    // through the resolver - NOT a hard `inject` dep - so `PostgresFeature`
+    // stays zero-config. Unset -> undefined -> the client's built-in defaults
+    // (max 10, idle 20s, connect 10s) apply, exactly as before.
+    const pool = await resolve(Config.of(PostgresClientConfig) as never).catch(
+      () => undefined,
+    ) as { max?: number; idleTimeout?: number; connectTimeout?: number } | undefined;
+    return createRawPostgresClient(
+      {
+        connectionString: secrets.connectionString,
+        max: pool?.max,
+        idleTimeout: pool?.idleTimeout,
+        connectTimeout: pool?.connectTimeout,
+      },
+      logger,
+    );
+  },
 });
 
 /**
