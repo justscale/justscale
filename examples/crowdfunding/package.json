@@ -1,0 +1,27 @@
+{
+  "name": "@justscale-examples/crowdfunding",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Example crowdfunding app demonstrating permission-scoped queries and durable processes",
+  "scripts": {
+    "build": "node ../../packages/core/typescript/dist/compiler/ptsc.js",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=30000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "node ../../packages/core/typescript/dist/compiler/ptsc.js --noEmit"
+  },
+  "dependencies": {
+    "@justscale/auth": "workspace:*",
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "@justscale/permission": "workspace:*",
+    "@justscale/postgres": "workspace:*"
+  },
+  "devDependencies": {
+    "@justscale/testing": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "@types/node": "^25.6.0",
+    "postgres": "^3.4.9",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

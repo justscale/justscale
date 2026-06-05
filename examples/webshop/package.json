@@ -1,0 +1,27 @@
+{
+  "name": "@justscale-examples/webshop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Example webshop backend demonstrating @justscale model permissions",
+  "scripts": {
+    "build": "node ../../packages/core/typescript/dist/compiler/ptsc.js",
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-timeout=10000 --test-force-exit 'test/**/*.test.ts'",
+    "typecheck": "node ../../packages/core/typescript/dist/compiler/ptsc.js --noEmit"
+  },
+  "dependencies": {
+    "@justscale/core": "workspace:*",
+    "@justscale/http": "workspace:*",
+    "@justscale/permission": "workspace:*",
+    "@justscale/postgres": "workspace:*",
+    "@justscale/sse": "workspace:*"
+  },
+  "devDependencies": {
+    "@justscale/testing": "workspace:*",
+    "@justscale/typescript": "workspace:*",
+    "@types/node": "^25.6.0",
+    "postgres": "^3.4.9",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

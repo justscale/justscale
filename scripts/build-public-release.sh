@@ -115,13 +115,20 @@ sync_pkg packages/core/testing
 sync_pkg packages/protocol/http
 sync_pkg packages/adapters/postgres
 sync_pkg packages/feature/auth
+sync_pkg packages/feature/permission
 sync_pkg packages/misc/install
 
 # --- examples (public-facing showcase apps) ---
 # Only examples that depend solely on the shipped package set
-# (core/typescript/testing/http/postgres) belong here. .justscale is a
-# dev-time process cache, never shipped.
+# (core/typescript/testing/http/postgres/auth/sse/permission) belong here.
+# .justscale is a dev-time process cache, never shipped.
+#
+# package.json is KEEP-excluded for the permission showcases: the release
+# copies are renamed to the @justscale-examples/ scope so the publish
+# workflow's `^@justscale/` package grep never picks them up.
 sync_pkg examples/order-fulfillment .justscale
+sync_pkg examples/webshop      .justscale package.json
+sync_pkg examples/crowdfunding .justscale package.json
 
 echo
 echo "swap   plugins/index.ts <- plugins/index.public.ts"
