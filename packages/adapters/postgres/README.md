@@ -15,55 +15,56 @@ pnpm add @justscale/postgres postgres
 ## Usage
 
 ```ts
-import JustScale, {
-  AbstractChannelBackend,
-  ChannelFeature,
-  bindService,
-} from '@justscale/core';
+import JustScale, { createSecretProvider } from '@justscale/core';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
-  createPgModel,
-  createPgRepository,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresLockFeature,
   PostgresProcessFeature,
   PostgresMigrationFeature,
+  PostgresSecrets,
+  createPgModel,
+  createPgRepository,
 } from '@justscale/postgres';
 import { User } from './domain/user.js';
 
-const connectionString = process.env.DATABASE_URL!;
-const PgClient = createPostgresClient({ connectionString });
-const PgChannel = createPostgresChannelBackend({ connectionString });
+const Secrets = createSecretProvider({
+  provides: [PostgresSecrets],
+  factory: () => ({ [PostgresSecrets.key]: { connectionString: process.env.DATABASE_URL! } }),
+});
 
 const PgUser = createPgModel(User, { table: 'users' });
 const UserRepository = createPgRepository(PgUser);
 
 const app = JustScale()
-  .add(PgClient)
-  .add(bindService(AbstractChannelBackend, PgChannel))
-  .add(ChannelFeature)
-  .add(PostgresLockFeature)
-  .add(PostgresProcessFeature)
+  .add(Secrets)
+  .add(PostgresFeature)         // provides AbstractPostgresClient
+  .add(PostgresChannelFeature)  // provides AbstractChannelBackend (LISTEN/NOTIFY)
+  .add(PostgresLockFeature)     // distributed advisory locks
+  .add(PostgresProcessFeature)  // durable-process storage
   .add(PostgresMigrationFeature)
   .add(UserRepository)
   .build();
 ```
 
-Services inject the abstract `ModelRepository.of(User)` token and stay storage-agnostic — the `createPgRepository` wiring stays in `app.ts`. `PostgresProcessFeature` binds the durable-process storage so `createProcess` handlers survive restarts.
+Services inject the abstract `ModelRepository.of(User)` token and stay storage-agnostic — the `createPgRepository` wiring stays in `app.ts`. `PostgresProcessFeature` binds the durable-process storage so `createProcess` handlers survive restarts. Tune the pool with a `PostgresClientConfig` partial (`max`, `idleTimeout`, `connectTimeout`) or `just config set postgres:client max 25`.
+
+> Need a custom secret shape, multiple databases, or hand-built wiring? The low-level `createPostgresClient` / `createPostgresChannelBackend` factories live in `@justscale/postgres/advanced`.
 
 ## What's included
 
-- **Client** — `createPostgresClient` (pooled), `createRawPostgresClient`; `AbstractPostgresClient` for DI; implicit-transaction context via `getCurrentTransactionContext`.
+- **Client** — `PostgresFeature` provides `AbstractPostgresClient` from a `PostgresSecrets` connection string; pool tuning via the `PostgresClientConfig` partial (`max`, `idleTimeout`, `connectTimeout`). Implicit-transaction context via `getCurrentTransactionContext`.
 - **Models + repositories** — `createPgModel` maps a `defineModel` class to a table; `createPgRepository` produces a DI-compatible `Repository<T>` with typed queries, locking, and change streams via `ModelChangeChannels`.
 - **Locks** — `PostgresLockFeature` backs `@justscale/core/lock` with advisory locks. Strategies pick between `pg_advisory_lock` and a dedicated table; context tracking via `withLockContext` / `getCurrentLocks`.
-- **Channel backend** — `createPostgresChannelBackend` fans published channel messages out through `LISTEN/NOTIFY` so every instance on the same database sees each publish exactly once.
+- **Channel backend** — `PostgresChannelFeature` provides `AbstractChannelBackend`, fanning published channel messages out through `LISTEN/NOTIFY` so every instance on the same database sees each publish exactly once.
 - **Pub/Sub primitive** — `createPostgresPubSub` if you want raw `LISTEN/NOTIFY` outside the channels abstraction.
 - **Migrations** — `PostgresMigrationFeature` adds the `migrate` CLI subset (`run`, `status`, `pending`, `rollback`). Dev-only commands (`make`, `fresh`, `verify`) live under `@justscale/postgres/dev`.
 - **Durable iteration** — `PgQueryIterator` drives `for await` loops inside durable processes with keyset pagination, so long-running jobs can resume mid-iterate.
 
 ## Subpath exports
 
-- `@justscale/postgres` — production surface (client, repositories, migrations-prod, locks, channel, process storage).
+- `@justscale/postgres` — production surface (features, repositories, migrations-prod, locks, channel, process storage).
+- `@justscale/postgres/advanced` — low-level factories (`createPostgresClient`, `createPostgresChannelBackend`) for custom secret shapes, multiple databases, or hand-built wiring.
 - `@justscale/postgres/dev` — dev-only migration commands (`make`, `fresh`, `verify`, auto-sync tooling) that need a writable workspace.
 - `@justscale/postgres/testing` — `PostgresTestBundle`, pglite-based containers, TRUNCATE helpers for fast test isolation.
 

@@ -1,4 +1,4 @@
-import JustScale, { bindRepository, bindService, AbstractChannelBackend, ChannelFeature, createConfig } from '@justscale/core';
+import JustScale, { bindRepository, bindService, ChannelFeature, createConfig, createSecretProvider } from '@justscale/core';
 import { ModelRepository } from '@justscale/core/models';
 import {
   AbstractEmailSender,
@@ -9,11 +9,12 @@ import {
   User,
 } from '@justscale/auth';
 import {
-  createPostgresClient,
-  createPostgresChannelBackend,
+  PostgresFeature,
+  PostgresChannelFeature,
   PostgresLockFeature,
   PostgresProcessFeature,
   PostgresProcessConfig,
+  PostgresSecrets,
 } from '@justscale/postgres';
 import {
   Backer,
@@ -45,8 +46,10 @@ import { campaignLifecycle } from './processes/campaign-lifecycle.process.js';
 
 const connectionString = process.env.DATABASE_URL ?? `postgres://localhost:${process.env.PGPORT ?? 5433}/crowdfunding`;
 
-const PostgresClient = createPostgresClient({ connectionString });
-const PgChannelBackend = createPostgresChannelBackend({ connectionString });
+const Secrets = createSecretProvider({
+  provides: [PostgresSecrets],
+  factory: () => ({ [PostgresSecrets.key]: { connectionString } }),
+});
 
 const CrowdfundingConfig = createConfig({
   provides: [PostgresProcessConfig],
@@ -56,10 +59,10 @@ const CrowdfundingConfig = createConfig({
 });
 
 export const app = (JustScale() as any)
+  .add(Secrets)
   .add(CrowdfundingConfig)
-  .add(PostgresClient)
-  .add(PgChannelBackend)
-  .add(bindService(AbstractChannelBackend, PgChannelBackend))
+  .add(PostgresFeature)
+  .add(PostgresChannelFeature)
   .add(ChannelFeature)
   .add(PostgresLockFeature)
   .add(PostgresProcessFeature)

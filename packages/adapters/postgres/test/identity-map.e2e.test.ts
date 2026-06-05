@@ -24,7 +24,6 @@ import { InMemoryProcessFeature } from '@justscale/core/process';
 import { InMemoryLockFeature } from '@justscale/core/memory';
 import { defineModel, field } from '@justscale/core/models';
 import {
-  createPostgresClient,
   createPgModel,
   createPgRepository,
   ModelChangeChannels,
@@ -33,6 +32,7 @@ import {
   keyOf,
   versionOf,
 } from '../src/index.js';
+import { createPostgresClient } from '../src/client/client.js';
 import { ModelRegistry } from '../src/model/model-registry.js';
 import { PgSchemaIntrospection } from '../src/migration/migration.js';
 import { requirePostgres, CONNECTION_STRING } from './__mocks__/test-setup.js';
