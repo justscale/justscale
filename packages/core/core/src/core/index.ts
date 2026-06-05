@@ -17,6 +17,7 @@ export { LifecycleImpl } from './lifecycle-impl.js';
 
 // Logger
 export * from './logger.js';
+export * from './pino-logger.js';
 
 // Controller
 export * from './controller.js';

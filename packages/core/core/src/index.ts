@@ -28,8 +28,14 @@ export {
   Logger,
   ConsoleLogger,
   ConsoleLoggerFactory,
+  LoggerFactory,
+  PinoLoggerFactory,
+  loggerConfigFromEnv,
   getMinLogLevel,
   setMinLogLevel,
+  isLevelEnabled,
+  onMinLogLevelChange,
+  emitLog,
   getContext,
   captureContext,
   runWithContext,
@@ -76,9 +82,11 @@ export type {
   CollectAllDeps,
   ValidateDeps,
   // Logger types
-  LoggerFactory,
   LogAttributes,
   LogLevel,
+  // Pino backend config
+  PinoLoggerConfig,
+  LokiTransportConfig,
   // Observability types
   ObservabilityContext,
   LinkedContext,
@@ -397,6 +405,12 @@ export type {
   ConfigToken,
   ConfigService,
 } from './features/config/index.js';
+
+export {
+  loggerConfig,
+  pinoLoggerFactory,
+  consoleLoggerFactory,
+} from './features/logging/index.js';
 
 export {
   SECRET_PARTIAL,

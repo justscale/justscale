@@ -141,6 +141,10 @@ function createAppCore(config: AppCoreConfig): App {
       await config._asyncBeforeControllerResolution(container, allControllers);
     }
 
+    // Swap in an app-bound LoggerFactory (pino with config / console / custom)
+    // before anything resolves a Logger, so the whole app shares one backend.
+    await container.resolveBoundLoggerFactory();
+
     const controllerPromises = (config.controllers ?? []).map(async (controllerDef) => {
       container.register(controllerDef as ServiceDef<unknown, any>);
       const instance = await container.resolve(controllerDef) as ControllerInstance<any>;

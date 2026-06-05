@@ -6,10 +6,10 @@
 
 import {
   Logger,
-  type LoggerFactory,
-  ConsoleLoggerFactory,
+  LoggerFactory,
   isLoggerToken,
 } from './logger.js';
+import { PinoLoggerFactory, loggerConfigFromEnv } from './pino-logger.js';
 import {
   isLifecycleToken,
 } from './lifecycle.js';
@@ -423,7 +423,10 @@ export class Container {
    * Logger factory for creating contextual loggers.
    * Can be replaced to use a custom logger implementation.
    */
-  private loggerFactory: LoggerFactory = new ConsoleLoggerFactory();
+  // Default backend: env-seeded pino (structured JSON to stdout, no worker
+  // thread). Always works during bootstrap before any binding is resolved.
+  // Swapped for an app-bound LoggerFactory in resolveBoundLoggerFactory().
+  private loggerFactory: LoggerFactory = new PinoLoggerFactory(loggerConfigFromEnv());
 
   /**
    * Lifecycle instance for hook registration.
@@ -627,6 +630,24 @@ export class Container {
   setLoggerFactory(factory: LoggerFactory): this {
     this.loggerFactory = factory;
     return this;
+  }
+
+  /**
+   * If the app bound a custom LoggerFactory - via `.add(pinoLoggerFactory())`,
+   * `.add(consoleLoggerFactory())`, a `provides: [LoggerFactory]` service, or
+   * `.override(LoggerFactory, ...)` - resolve it once and use it for every
+   * logger created afterwards. Called during bootstrap before controllers and
+   * other services resolve, so they all share the chosen backend.
+   *
+   * No re-entrancy hazard: any logging triggered while the factory resolves
+   * uses the existing `loggerFactory` field (the env-seeded pino default),
+   * never `resolve(LoggerFactory)`, so it cannot recurse.
+   */
+  async resolveBoundLoggerFactory(): Promise<void> {
+    const token = LoggerFactory as unknown as ServiceToken<LoggerFactory>;
+    if (!this.factories.has(token)) return;
+    const factory = await this.resolve(token);
+    if (factory) this.loggerFactory = factory;
   }
 
   /**
@@ -1115,6 +1136,8 @@ export {
   Logger,
   ConsoleLogger,
   ConsoleLoggerFactory,
+  // LoggerFactory is an abstract class -> usable as a DI token
+  LoggerFactory,
   // Context utilities
   getContext,
   captureContext,
@@ -1127,10 +1150,12 @@ export {
   registerInstrumentation,
   unregisterInstrumentation,
   getInstrumentations,
+  emitLog,
+  isLevelEnabled,
+  onMinLogLevelChange,
 } from './logger.js';
 
 export type {
-  LoggerFactory,
   LogAttributes,
   LogLevel,
   // Context types

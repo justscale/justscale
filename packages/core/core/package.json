@@ -187,7 +187,12 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "cbor-x": "^1.6.4",
+    "pino": "^9.6.0",
     "weakrefset": "^0.2.2"
+  },
+  "optionalDependencies": {
+    "pino-loki": "^2.5.0",
+    "pino-pretty": "^13.0.0"
   },
   "peerDependencies": {
     "@justscale/typescript": "workspace:*",
