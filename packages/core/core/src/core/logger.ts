@@ -217,9 +217,33 @@ export function getMinLogLevel(): LogLevel {
   return minLogLevel;
 }
 
+/**
+ * Whether a log at `level` would be emitted given the current minimum.
+ * Backends gate on this before doing any serialization work.
+ */
+export function isLevelEnabled(level: LogLevel): boolean {
+  return LEVEL_ORDER[level] >= LEVEL_ORDER[minLogLevel];
+}
+
+/** Listeners notified when the minimum log level changes. */
+const levelListeners = new Set<(level: LogLevel) => void>();
+
+/**
+ * Subscribe to minimum-log-level changes. Backends that keep their own
+ * level gate (e.g. pino) use this to stay in sync. Returns an unsubscribe.
+ */
+export function onMinLogLevelChange(listener: (level: LogLevel) => void): () => void {
+  levelListeners.add(listener);
+  return () => levelListeners.delete(listener);
+}
+
 /** Override the minimum log level at runtime. Takes effect on the next log call. */
 export function setMinLogLevel(level: LogLevel): void {
+  if (level === minLogLevel) return;
   minLogLevel = level;
+  for (const listener of levelListeners) {
+    listener(level);
+  }
 }
 
 /**
@@ -360,6 +384,24 @@ export function getInstrumentations(): readonly Instrumentation[] {
   return instrumentations;
 }
 
+/**
+ * Forward a log line to every registered instrumentation's `onLog` hook.
+ *
+ * Backend-agnostic: any Logger implementation (ConsoleLogger, PinoLogger, ...)
+ * calls this after it has decided the line passes the level gate, so OTel /
+ * Datadog span-correlation keeps working regardless of the chosen backend.
+ */
+export function emitLog(
+  level: LogLevel,
+  message: string,
+  attributes: Record<string, unknown>,
+  context: ObservabilityContext
+): void {
+  for (const inst of instrumentations) {
+    inst.onLog?.(level, message, attributes, context);
+  }
+}
+
 // ============================================================================
 // Scope Management (used internally by app.ts)
 // ============================================================================
@@ -460,10 +502,15 @@ export abstract class Logger {
 
 /**
  * Factory for creating Logger instances with context.
- * Implement this to use a custom logger (Pino, Winston, etc.)
+ *
+ * An abstract class (not an interface) so it doubles as a DI token: a backend
+ * binds itself with `defineService({ provides: [LoggerFactory], factory })`
+ * and apps swap it with `.add(pinoLoggerFactory(...))` /
+ * `.add(consoleLoggerFactory())` — the same `.add()` path as any other
+ * service. The container resolves the bound factory once at bootstrap.
  */
-export interface LoggerFactory {
-  create(name: string): Logger;
+export abstract class LoggerFactory {
+  abstract create(name: string): Logger;
 }
 
 // ============================================================================
@@ -476,7 +523,7 @@ export class ConsoleLogger extends Logger {
   }
 
   private log(level: LogLevel, message: string, attributes?: LogAttributes): void {
-    if (LEVEL_ORDER[level] < LEVEL_ORDER[minLogLevel]) {
+    if (!isLevelEnabled(level)) {
       return;
     }
 
@@ -516,9 +563,7 @@ export class ConsoleLogger extends Logger {
     }
 
     // Notify instrumentations
-    for (const inst of instrumentations) {
-      inst.onLog?.(level, message, attributes ?? {}, ctx);
-    }
+    emitLog(level, message, attributes ?? {}, ctx);
   }
 
   trace(message: string, attributes?: LogAttributes): void {
@@ -547,9 +592,10 @@ export class ConsoleLogger extends Logger {
 }
 
 /**
- * Default logger factory using ConsoleLogger.
+ * Logger factory using the zero-dependency ConsoleLogger.
+ * Opt in with `.add(consoleLoggerFactory())` when you don't want pino.
  */
-export class ConsoleLoggerFactory implements LoggerFactory {
+export class ConsoleLoggerFactory extends LoggerFactory {
   create(name: string): Logger {
     return new ConsoleLogger(name);
   }
