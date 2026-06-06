@@ -49,6 +49,6 @@
     "@justscale/typescript": "workspace:*",
     "@starfederation/datastar": "1.0.0-beta.11",
     "puppeteer": "^25.1.0",
-    "tsx": "^4.21.0"
+    "tsx": "^4.22.4"
   }
 }
