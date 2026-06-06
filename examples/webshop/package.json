@@ -21,7 +21,7 @@
     "@justscale/typescript": "workspace:*",
     "@types/node": "^25.6.0",
     "postgres": "^3.4.9",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }

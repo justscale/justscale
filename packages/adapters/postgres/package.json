@@ -98,6 +98,6 @@
     "@electric-sql/pglite-socket": "^0.1.5",
     "@justscale/core": "workspace:*",
     "@justscale/typescript": "workspace:*",
-    "tsx": "^4.21.0"
+    "tsx": "^4.22.4"
   }
 }

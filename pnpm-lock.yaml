@@ -44,8 +44,8 @@ importers:
         specifier: ^17.5.0
         version: 17.6.0
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       turbo:
         specifier: ^2.9.6
         version: 2.9.14
@@ -90,8 +90,8 @@ importers:
         specifier: ^3.4.9
         version: 3.4.9(patch_hash=f90fc90c62322b330dd1e200dda9d259ad38706ad9af3826cd26a3fd496eabd3)
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -118,8 +118,8 @@ importers:
         specifier: ^3.4.9
         version: 3.4.9(patch_hash=f90fc90c62322b330dd1e200dda9d259ad38706ad9af3826cd26a3fd496eabd3)
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -146,8 +146,8 @@ importers:
         specifier: ^3.4.9
         version: 3.4.9(patch_hash=f90fc90c62322b330dd1e200dda9d259ad38706ad9af3826cd26a3fd496eabd3)
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -186,8 +186,8 @@ importers:
         specifier: ^3.4.9
         version: 3.4.9(patch_hash=f90fc90c62322b330dd1e200dda9d259ad38706ad9af3826cd26a3fd496eabd3)
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -214,8 +214,8 @@ importers:
         specifier: workspace:*
         version: link:../../core/typescript
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
 
   packages/core/core:
     dependencies:
@@ -294,8 +294,8 @@ importers:
         version: link:../../core/typescript
     devDependencies:
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
 
   packages/feature/hmr/test/fixtures/basic-app:
     dependencies:
@@ -312,8 +312,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../../core/typescript
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
       zod:
         specifier: ^4.4.1
         version: 4.4.3
@@ -340,8 +340,8 @@ importers:
         specifier: ^25.6.0
         version: 25.9.1
       tsx:
-        specifier: ^4.20.6
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
 
   packages/protocol/datastar:
     dependencies:
@@ -368,8 +368,8 @@ importers:
         specifier: ^25.1.0
         version: 25.1.0
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
 
   packages/protocol/http:
     dependencies:
@@ -396,8 +396,8 @@ importers:
         specifier: workspace:*
         version: link:../../core/typescript
       tsx:
-        specifier: ^4.21.0
-        version: 4.22.3
+        specifier: ^4.22.4
+        version: 4.22.4
 
 packages:
 
@@ -1926,8 +1926,8 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4'
 
-  tsx@4.22.3:
-    resolution: {integrity: sha512-mdoNxBC/cSQObGGVQ5Bpn5i+yv7j68gk3Nfm3wFjcJg3Z0Mix9jzAFfP12prmm5eVGmDKtp0yyArrs0Q+8gZHg==}
+  tsx@4.22.4:
+    resolution: {integrity: sha512-X8EX+XV4QR5xCsrgxaED954zTDfY8KqlDtskKEL0cHhyS/P8b4IFOvGDQpsC9Q1XnLq915wEfwwY/zzskCtmhg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3611,7 +3611,7 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  tsx@4.22.3:
+  tsx@4.22.4:
     dependencies:
       esbuild: 0.28.0
     optionalDependencies:
