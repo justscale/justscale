@@ -34,13 +34,17 @@ export const PostgresClientService = defineService({
     // (max 10, idle 20s, connect 10s) apply, exactly as before.
     const pool = await resolve(Config.of(PostgresClientConfig) as never).catch(
       () => undefined,
-    ) as { max?: number; idleTimeout?: number; connectTimeout?: number } | undefined;
+    ) as
+      | { max?: number; idleTimeout?: number; connectTimeout?: number; keepAlive?: number; statementTimeout?: number }
+      | undefined;
     return createRawPostgresClient(
       {
         connectionString: secrets.connectionString,
         max: pool?.max,
         idleTimeout: pool?.idleTimeout,
         connectTimeout: pool?.connectTimeout,
+        keepAlive: pool?.keepAlive,
+        statementTimeout: pool?.statementTimeout,
       },
       logger,
     );

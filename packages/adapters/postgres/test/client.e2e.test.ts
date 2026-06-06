@@ -870,3 +870,42 @@ describe('PostgreSQL Client E2E', async () => {
     });
   });
 });
+
+describe('PostgreSQL Client resilience options', async () => {
+  if (!await requirePostgres()) return;
+
+  test('statementTimeout aborts a runaway query server-side', async () => {
+    const client = createRawPostgresClient({ connectionString: CONNECTION_STRING, statementTimeout: 400 });
+    try {
+      const t = Date.now();
+      await assert.rejects(
+        () => client.sql`SELECT pg_sleep(3)` as unknown as Promise<unknown>,
+        (e: { code?: string }) => e.code === '57014', // canceling statement due to statement timeout
+      );
+      assert.ok(Date.now() - t < 2000, 'should abort well before the 3s sleep finishes');
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('no statementTimeout lets the same query run to completion', async () => {
+    const client = createRawPostgresClient({ connectionString: CONNECTION_STRING });
+    try {
+      await client.sql`SELECT pg_sleep(1)`; // completes, no abort
+    } finally {
+      await client.close();
+    }
+  });
+
+  test('keepAlive option is accepted and queries still work', async () => {
+    // Lower keepAlive => faster detection of a silently-dead server (the
+    // ~60s-freeze fix). Just assert it's a valid option and queries run.
+    const client = createRawPostgresClient({ connectionString: CONNECTION_STRING, keepAlive: 5 });
+    try {
+      const rows = await client.sql`SELECT 1 AS ok` as unknown as Array<{ ok: number }>;
+      assert.strictEqual(rows[0].ok, 1);
+    } finally {
+      await client.close();
+    }
+  });
+});

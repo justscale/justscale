@@ -80,6 +80,14 @@ export const PostgresClientConfig = defineConfigPartial(
     idleTimeout: z.number().int().nonnegative().optional(),
     /** Seconds to wait for a new connection before failing. Default 10. */
     connectTimeout: z.number().int().nonnegative().optional(),
+    /**
+     * TCP keepalive idle (seconds) before detecting a silently-dead pg.
+     * Default 10. postgres.js defaults to 60 — the cause of the ~60s freeze
+     * when a pg pod vanished. Set 0 to disable.
+     */
+    keepAlive: z.number().int().nonnegative().optional(),
+    /** Server-side statement_timeout in ms for runaway queries. Default off. */
+    statementTimeout: z.number().int().nonnegative().optional(),
   }),
 );
 

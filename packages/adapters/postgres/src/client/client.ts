@@ -51,6 +51,22 @@ export interface PostgresClientOptions {
   idleTimeout?: number
   /** Connect timeout in seconds (default: 10) */
   connectTimeout?: number
+  /**
+   * TCP keepalive idle, in seconds, before the first probe on an idle socket
+   * (default: 10). This is how fast a connection to a pg server that vanished
+   * silently (pod crash / node loss / network partition — no TCP RST) is
+   * detected: an in-flight query has nothing else to abort it. postgres.js's
+   * own default is 60, which is why a silently-dead pg froze callers for ~60s;
+   * we lower it so failover is detected in seconds. Set 0 to disable.
+   */
+  keepAlive?: number
+  /**
+   * Server-side `statement_timeout` in milliseconds, applied as a connection
+   * parameter (default: unset / no limit). Bounds runaway queries. Note: only
+   * enforced while the server is alive — it does NOT cover a dead/frozen
+   * server (use `keepAlive` for silent-peer detection).
+   */
+  statementTimeout?: number
   /** Connection name for debugging */
   name?: string
   /** SSL mode */
@@ -447,16 +463,28 @@ class PostgresClientImpl extends AbstractPostgresClient {
 }
 
 function buildPostgresOptions(options: PostgresClientOptions): Options<{}> {
+  // Detect a silently-dead pg fast. postgres.js defaults keep_alive to 60s,
+  // so an in-flight query on a vanished server hung ~60s before the first
+  // TCP keepalive probe. Default to 10s; callers can override or disable (0).
+  const keepAlive = options.keepAlive ?? 10;
+
+  const connectionParams: Record<string, string> = {
+    // Pin search_path at connection startup to prevent schema-shadow attacks
+    // (CVE-2024-0985 class). Per-session SET search_path still works for
+    // test/migration tooling that explicitly overrides it.
+    search_path: '"$user",public',
+  };
+  // Server-side runaway-query guard (opt-in). Postgres takes ms as a string.
+  if (options.statementTimeout !== undefined) {
+    connectionParams.statement_timeout = String(options.statementTimeout);
+  }
+
   const pgOptions: Options<{}> = {
     max: options.max ?? 10,
     idle_timeout: options.idleTimeout ?? 20,
     connect_timeout: options.connectTimeout ?? 10,
-    // Pin search_path at connection startup to prevent schema-shadow attacks
-    // (CVE-2024-0985 class). Per-session SET search_path still works for
-    // test/migration tooling that explicitly overrides it.
-    connection: {
-      search_path: '"$user",public',
-    },
+    keep_alive: keepAlive,
+    connection: connectionParams,
   };
 
   if (options.backoff !== undefined) {
