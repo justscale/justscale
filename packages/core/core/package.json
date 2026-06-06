@@ -191,7 +191,7 @@
     "weakrefset": "^0.2.2"
   },
   "optionalDependencies": {
-    "pino-loki": "^2.5.0",
+    "pino-loki": "^3.0.0",
     "pino-pretty": "^13.0.0"
   },
   "peerDependencies": {
