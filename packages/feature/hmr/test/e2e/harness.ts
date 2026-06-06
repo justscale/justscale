@@ -48,8 +48,13 @@ export interface StartOptions {
 
 export async function startFixture(options: StartOptions): Promise<HarnessHandle> {
   const port = await getFreePort();
-  const readyTimeoutMs = options.readyTimeoutMs ?? 10_000;
-  const hmrTimeoutMs = options.hmrTimeoutMs ?? 5_000;
+  // Generous startup/reload budgets: on a loaded CI runner (e.g. the publish
+  // job building every package in parallel) spinning up the dev-server fixture
+  // and recompiling on edit intermittently took >10s, flaking the whole suite
+  // with "fixture failed to start within 10000ms". These are upper bounds for
+  // a genuinely-stuck fixture, not the expected time, so larger is safe.
+  const readyTimeoutMs = options.readyTimeoutMs ?? 60_000;
+  const hmrTimeoutMs = options.hmrTimeoutMs ?? 30_000;
 
   // Fresh temp copy per invocation. Edits never touch the original.
   const workDir = createFixtureCopy(options.fixtureDir);

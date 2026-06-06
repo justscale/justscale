@@ -44,7 +44,7 @@
     "build": "ptsc -b tsconfig.build.json",
     "clean": "rm -rf dist",
     "typecheck": "ptsc --noEmit",
-    "test": "node --import @justscale/typescript/register --import tsx --test --test-concurrency=1 --test-timeout=30000 --test-force-exit 'test/e2e/**/*.e2e.test.ts'"
+    "test": "node --import @justscale/typescript/register --import tsx --test --test-concurrency=1 --test-timeout=120000 --test-force-exit 'test/e2e/**/*.e2e.test.ts'"
   },
   "devDependencies": {
     "tsx": "^4.22.4"
