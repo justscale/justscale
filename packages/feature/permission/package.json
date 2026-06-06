@@ -1,6 +1,6 @@
 {
   "name": "@justscale/permission",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Model-level permission declarations with typed guards for JustScale",
   "author": "JustScale",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@justscale/hmr",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Dev-only HMR orchestration for JustScale — file watcher + loader that drives container.hotReload() without process restart",
   "author": "JustScale",
   "license": "MIT",
