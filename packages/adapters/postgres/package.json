@@ -94,8 +94,8 @@
     }
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.5",
-    "@electric-sql/pglite-socket": "^0.1.5",
+    "@electric-sql/pglite": "^0.5.1",
+    "@electric-sql/pglite-socket": "^0.2.1",
     "@justscale/core": "workspace:*",
     "@justscale/typescript": "workspace:*",
     "tsx": "^4.22.4"
