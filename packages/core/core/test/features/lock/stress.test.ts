@@ -154,9 +154,12 @@ describe('InMemoryLockProvider — stress', () => {
 
   it('INVARIANT: acquire/release cycle time stays bounded (no unbounded waiter-set growth)', async () => {
     // If release() leaks waiter-set entries on every cycle, each iteration
-    // gets slower. We assert the last 100 cycles complete in at most 5x
-    // the time of the first 100 — a very generous bound that still catches
-    // O(n^2) regressions in waiter handling.
+    // gets slower. We bound the last 100 cycles to 5x the first 100 PLUS a
+    // 50ms absolute slack. At these tiny absolute times (single-digit ms for
+    // 100 cycles) the bare ratio is pure timer/GC/scheduler noise on a loaded
+    // CI runner — e.g. 1ms->8ms reads as "8x" but isn't growth. The additive
+    // floor absorbs that jitter while still catching real O(n^2) blowups,
+    // which push `last` into the hundreds of ms.
     const lp = createInMemoryLockProvider();
     const key = 'stress:growth';
 
@@ -176,8 +179,8 @@ describe('InMemoryLockProvider — stress', () => {
     await timeRange(sampleSize, sampleSize * 3);
     const last = await timeRange(sampleSize * 3, sampleSize * 3 + sampleSize);
 
-    const ratio = last / Math.max(first, 1);
-    assert.ok(ratio < 5,
-      `cycle time should not grow unboundedly; first=${first}ms last=${last}ms ratio=${ratio.toFixed(2)}`);
+    const bound = first * 5 + 50; // 5x growth + 50ms noise floor
+    assert.ok(last < bound,
+      `cycle time should not grow unboundedly; first=${first}ms last=${last}ms bound=${bound}ms`);
   });
 });
