@@ -1,6 +1,6 @@
 {
   "name": "@justscale/core",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Type-safe dependency injection, services, and controllers for JustScale",
   "author": "JustScale",
   "license": "MIT",

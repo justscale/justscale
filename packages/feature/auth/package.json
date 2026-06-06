@@ -1,6 +1,6 @@
 {
   "name": "@justscale/auth",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Authentication and authorization utilities for JustScale",
   "author": "JustScale",
   "license": "MIT",
