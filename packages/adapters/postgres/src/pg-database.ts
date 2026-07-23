@@ -136,6 +136,13 @@ function generateColumnDef(col: ColumnMeta): string {
     } else if (typeof col.defaultValue === 'object') {
       parts.push(`DEFAULT '${JSON.stringify(col.defaultValue)}'`);
     }
+  } else if (col.fieldType === 'createdAt' || col.fieldType === 'updatedAt') {
+    // Auto-managed timestamp fields default to NOW() at the database level -
+    // matching the system created_at/updated_at columns and ColumnDef.fromField.
+    // Without this, a user-declared field.createdAt()/updatedAt() emits a
+    // NOT NULL column with no default, so an insert that doesn't set it
+    // explicitly fails the not-null constraint.
+    parts.push('DEFAULT NOW()');
   }
 
   return parts.join(' ');
