@@ -30,6 +30,6 @@
   "devDependencies": {
     "@justscale/typescript": "workspace:*",
     "@types/node": "^25.9.2",
-    "tsx": "^4.22.4"
+    "tsx": "^4.23.6"
   }
 }
