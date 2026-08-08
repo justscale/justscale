@@ -186,7 +186,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "cbor-x": "^1.6.4",
+    "cbor-x": "^1.6.5",
     "pino": "^10.3.1",
     "weakrefset": "^0.2.2"
   },
