@@ -110,6 +110,6 @@
     "typescript": "^6.0.0"
   },
   "devDependencies": {
-    "source-map": "^0.7.6"
+    "source-map": "^0.8.0"
   }
 }
